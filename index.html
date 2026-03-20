@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EXPANDED 3D Network</title>
+<title>EXPANDED 3D Network (Fixed Perspective)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
 
@@ -20,7 +20,9 @@
     background-color: var(--bg-color);
     color: white;
     font-family: 'Space Grotesk', sans-serif;
-    perspective: 1200px; /* 원근감 */
+    perspective: 1200px;
+    /* [핵심 해결책] 소실점 자체를 화면 중하단부(70%)로 끌어내림! */
+    perspective-origin: 50% 70%; 
   }
 
   header {
@@ -33,7 +35,6 @@
     align-items: center;
   }
 
-  /* 로고 스타일 */
   .logo {
     width: 40px;
     height: 40px;
@@ -63,23 +64,10 @@
     letter-spacing: 2px;
   }
 
-  /* 전체 3D 씬의 시각적 위치(높낮이 등)를 조절하는 래퍼 */
-  #scene-wrapper {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    transform-style: preserve-3d;
-    /* 씬 전체를 하단, 약간 좌측으로 이동 (여기서 시야 구도를 잡음) */
-    transform: translateY(10vh) translateX(-5vw);
-  }
-
-  /* 3D 렌더링 및 줌의 진짜 중심축 */
   #scene {
     position: absolute;
-    /* 줌의 중심이 어긋나지 않도록 화면 정중앙(50,50)으로 복귀 */
-    top: 50vh;  
+    /* 소실점과 동일하게 70vh(중하단부)에 딱 고정 */
+    top: 70vh;  
     left: 50vw; 
     width: 0;
     height: 0;
@@ -91,7 +79,6 @@
     cursor: grabbing;
   }
 
-  /* 두께를 가지는 3D 선 컨테이너 */
   .line3d {
     position: absolute;
     top: 0;
@@ -102,7 +89,6 @@
     transform-origin: center center;
   }
 
-  /* 십자(+) 형태로 교차하는 면 */
   .line3d .plane {
     position: absolute;
     width: 100%;
@@ -179,7 +165,6 @@
     opacity: 1;
   }
 
-  /* --- 줌 컨트롤 레버 --- */
   .zoom-control-container {
     position: fixed;
     right: 40px;
@@ -241,13 +226,11 @@
     <h1>EXPANDED</h1>
   </header>
 
-  <div id="scene-wrapper">
-    <div id="scene"></div>
-  </div>
+  <div id="scene"></div>
 
   <div class="zoom-control-container">
     <div class="slider-wrapper">
-      <input type="range" id="zoom-lever" min="-2000" max="1500" value="-800" step="10">
+      <input type="range" id="zoom-lever" min="-2000" max="1500" value="-2000" step="10">
     </div>
     <span class="zoom-label">ZOOM</span>
   </div>
@@ -351,7 +334,6 @@
   updateTransform();
 
   window.addEventListener('mousedown', (e) => {
-    // UI 요소 클릭 시 회전 방지
     if (e.target.closest('.zoom-control-container') || e.target.closest('.node-wrapper')) return;
 
     isDragging = true;
@@ -379,7 +361,6 @@
     previousY = e.clientY;
   });
 
-  // 슬라이더 이벤트 연결
   zoomLever.addEventListener('input', updateTransform);
 
 </script>
