@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EXPANDED 3D Network</title>
+<title>EXPANDED 3D Network with Zoom</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
 
@@ -11,6 +11,7 @@
     --bg-color: #050505;
     --neon-pink: #FF007F;
     --neon-pink-dim: rgba(255, 0, 127, 0.4);
+    --slider-track-color: #333;
   }
 
   body {
@@ -19,7 +20,7 @@
     background-color: var(--bg-color);
     color: white;
     font-family: 'Space Grotesk', sans-serif;
-    perspective: 1200px; /* 원근감을 살짝 더 깊게 설정 */
+    perspective: 1200px; /* 원근감 */
   }
 
   header {
@@ -48,6 +49,7 @@
     height: 0;
     transform-style: preserve-3d;
     cursor: grab;
+    transform-origin: center center -500px; /* 회전 중심 깊이 조정 */
   }
 
   #scene:active {
@@ -145,6 +147,54 @@
   .node-wrapper:hover .label {
     opacity: 1;
   }
+
+  /* --- 줌 컨트롤 레버 스타일 (네온 룩앤필 적용) --- */
+  .zoom-control-container {
+    position: fixed;
+    right: 30px;
+    top: 50vh;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    z-index: 20;
+    writing-mode: vertical-rl; /*ZOOM 글씨 세로로 */
+  }
+
+  #zoom-lever {
+    -webkit-appearance: none;
+    width: 150px; /* 세로 길이로 변환됨 */
+    height: 8px;
+    background: var(--slider-track-color);
+    outline: none;
+    opacity: 0.7;
+    transition: opacity .2s;
+    border-radius: 4px;
+    transform: rotate(270deg); /* 세로로 세움 */
+    cursor: pointer;
+  }
+
+  #zoom-lever::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--neon-pink);
+    cursor: pointer;
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--neon-pink-dim), 0 0 20px var(--neon-pink-dim);
+  }
+
+  .zoom-label {
+    font-family: 'Space Grotesk', sans-serif;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    opacity: 0.6;
+  }
+
 </style>
 </head>
 <body>
@@ -156,6 +206,11 @@
   <div id="scene">
     </div>
 
+  <div class="zoom-control-container">
+    <input type="range" id="zoom-lever" min="-1500" max="500" value="0" step="10">
+    <span class="zoom-label">ZOOM</span>
+  </div>
+
 <script>
   const scene = document.getElementById('scene');
   const totalCurators = 16;
@@ -165,7 +220,8 @@
   const RANGE_X = 1100; // 가로 폭
   const RANGE_Y = 600;  // 세로 폭
   const RANGE_Z = 800;  // 깊이 폭
-function generateNetwork3D() {
+
+  function generateNetwork3D() {
     // 1. 노드 생성 및 도넛(원형) 배치
     for (let i = 0; i < totalCurators; i++) {
       // 0부터 360도(2π) 사이의 무작위 각도 배정
@@ -250,16 +306,21 @@ function generateNetwork3D() {
   // 실행
   generateNetwork3D();
 
-  // --- 마우스 회전 제어 및 빌보딩 (정면 주시) 처리 ---
+  // --- 중요: 마우스 회전 제어 및 줌 기능 통합 ---
   let isDragging = false;
   let previousX = 0, previousY = 0;
   let rotationX = 15, rotationY = -20;
+  
+  // 줌 레버 요소 가져오기
+  const zoomLever = document.getElementById('zoom-lever');
 
   function updateTransform() {
-    // 씬 전체 회전
-    scene.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+    const zoomValue = zoomLever.value; // 슬라이더 값 가져오기
+
+    // 씬 전체 회전 및 줌 적용 (translateZ 추가)
+    scene.style.transform = `translateZ(${zoomValue}px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
     
-    // 각 노드는 씬이 돌아가는 각도와 정반대로 회전시켜 항상 화면(정면)을 바라보게 만듦
+    // 각 노드는 씬이 돌아가는 각도와 정반대로 회전시켜 항상 화면(정면)을 바라보게 만듦 (빌보딩 유지)
     nodes.forEach((p, i) => {
       const wrapperEl = document.getElementById(`node-${i}`);
       wrapperEl.style.transform = `translate3d(${p.x}px, ${p.y}px, ${p.z}px) rotateY(${-rotationY}deg) rotateX(${-rotationX}deg)`;
@@ -269,7 +330,12 @@ function generateNetwork3D() {
   // 첫 화면 로딩 시 1회 적용
   updateTransform();
 
+  // --- 이벤트 리스너 통합 ---
+
+  // 1. 마우스 회전 드래그 이벤트
   window.addEventListener('mousedown', (e) => {
+    // 줌 레버 클릭 시 회전 드래그 무시
+    if (e.target === zoomLever) return;
     isDragging = true;
     previousX = e.clientX;
     previousY = e.clientY;
@@ -284,17 +350,20 @@ function generateNetwork3D() {
     const deltaX = e.clientX - previousX;
     const deltaY = e.clientY - previousY;
 
-    // 회전 감도 설정
     rotationY += deltaX * 0.3; 
     rotationX -= deltaY * 0.3;
 
-    // 위아래로 너무 많이 넘어가서 뒤집히지 않게 각도 제한
     rotationX = Math.max(-80, Math.min(80, rotationX));
 
     updateTransform();
 
     previousX = e.clientX;
     previousY = e.clientY;
+  });
+
+  // 2. 줌 컨트롤 레버 슬라이드 이벤트
+  zoomLever.addEventListener('input', (e) => {
+    updateTransform(); // 슬라이더 조절 시에도 updateTransform 호출
   });
 
 </script>
