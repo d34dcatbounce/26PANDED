@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EXPANDED 3D Curation Network</title>
+<title>EXPANDED 3D Billboard Network</title>
 <style>
   /* 폰트 임포트 */
   @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
@@ -13,13 +13,14 @@
     --neon-pink: #FF007F;
     --neon-pink-dim: rgba(255, 0, 127, 0.4);
     --hover-neon: #FF66CC;
+    --text-color: white;
   }
 
   body {
     margin: 0;
     overflow: hidden; /* 스크롤 방지 */
     background-color: var(--bg-color);
-    color: white;
+    color: var(--text-color);
     font-family: 'Space Grotesk', sans-serif;
     /* 1. 바디에 원근감 부여 */
     perspective: 1200px; 
@@ -31,6 +32,29 @@
     left: 40px;
     z-index: 10;
     pointer-events: none; /* 타이틀 영역이 마우스 드래그를 방해하지 않도록 설정 */
+    display: flex;
+    align-items: center;
+  }
+
+  /* 로고 스타일 (image_4.png 의 EP 로고 구현) */
+  .logo {
+    width: 40px;
+    height: 40px;
+    background-color: transparent;
+    border: 2px solid var(--neon-pink);
+    border-radius: 50%;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .logo::before {
+    content: 'EP';
+    font-family: 'Syncopate', sans-serif;
+    color: var(--neon-pink);
+    font-size: 1.2rem;
+    font-weight: 700;
   }
 
   h1 {
@@ -49,7 +73,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    transform-style: preserve-3d; /* 자식 요소들에게도 3D 공간 유지 */
+    transform-style: preserve-3d; /* 중요: 자식 요소들에게도 3D 공간 유지 */
     cursor: grab;
     /* 초기 화면 기울기 설정 */
     transform: rotateX(20deg) rotateY(-15deg); 
@@ -68,6 +92,7 @@
     height: 100vh;
     z-index: 1;
     pointer-events: none; 
+    transform-style: preserve-3d;
   }
 
   line {
@@ -76,47 +101,65 @@
     opacity: 0.35;
   }
 
-  /* 큐레이터 노드 */
+  /* 큐레이터 노드 (셀) */
   .node {
     position: absolute;
-    width: 22px;
-    height: 22px;
-    background-color: var(--bg-color);
-    border: 2px solid var(--neon-pink);
-    border-radius: 50%;
-    transform: translate(-50%, -50%); 
+    width: 25px; /* 크기 키움 */
+    height: 25px;
+    background-color: transparent; /* 투명하게 */
     z-index: 2;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 15px var(--neon-pink-dim);
+    /* 빌보딩을 위한 설정: 컨테이너의 역회전 값을 변수로 사용 */
+    --inv-y: 0deg;
+    --inv-x: 0deg;
+    /* 항상 중앙 정렬 및 역회전 적용 */
+    transform: translate(-50%, -50%) rotateY(var(--inv-y)) rotateX(var(--inv-x));
+    transform-origin: center center;
   }
 
-  .node::after {
+  /* 노드 내부의 실제 원형 구체 */
+  .node-core {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: var(--bg-color);
+    border: 3px solid var(--neon-pink);
+    box-shadow: 0 0 15px var(--neon-pink-dim);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 노드 내부의 작은 점 */
+  .node-core::after {
     content: '';
-    width: 7px;
-    height: 7px;
+    width: 8px;
+    height: 8px;
     background-color: var(--neon-pink);
     border-radius: 50%;
-    transition: all 0.3s ease;
   }
 
-  .node:hover {
-    transform: translate(-50%, -50%) scale(1.7); /* hover 시에도 중앙 정렬 유지 */
+  /* Hover 시 효과 */
+  .node:hover .node-core {
+    transform: scale(1.6);
     border-color: var(--hover-neon);
     background-color: var(--hover-neon);
     box-shadow: 0 0 35px var(--neon-pink);
   }
 
-  .node:hover::after {
+  .node:hover .node-core::after {
     background-color: var(--bg-color);
   }
 
+  /* 큐레이터 이름 툴팁 */
   .label {
     position: absolute;
-    top: 35px;
+    top: 40px;
     left: 50%;
     transform: translateX(-50%);
     color: white;
@@ -126,19 +169,132 @@
     transition: opacity 0.3s ease;
     pointer-events: none;
     font-weight: 700;
-    background-color: rgba(0,0,0,0.6);
-    padding: 3px 8px;
+    background-color: rgba(0,0,0,0.7);
+    padding: 4px 10px;
     border-radius: 4px;
+    border: 1px solid var(--neon-pink-dim);
   }
 
   .node:hover .label {
     opacity: 1;
   }
+
+  /* 큐레이터 정보 모달창 (image_6.png 의 'SARA' 패널과 유사) */
+  #curator-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 350px;
+    max-width: 90%;
+    background-color: #121212; /* 더 진한 검정 */
+    border: 2px solid var(--neon-pink);
+    border-radius: 8px;
+    padding: 25px;
+    z-index: 100;
+    box-shadow: 0 0 40px rgba(255, 0, 127, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease;
+    pointer-events: none;
+  }
+
+  #curator-modal.open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    color: var(--neon-pink);
+    cursor: pointer;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .modal-title {
+    font-family: 'Syncopate', sans-serif;
+    color: var(--neon-pink);
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+  }
+
+  .modal-img {
+    width: 100%;
+    height: 150px;
+    background-color: #2a2a2a;
+    border: 1px solid var(--neon-pink-dim);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.4);
+    font-size: 0.8rem;
+  }
+
+  .modal-desc {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #e0e0e0;
+  }
+
+  /* 내비게이션 (image_6.png 와 유사하게 구성) */
+  nav {
+    position: absolute;
+    bottom: 30px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 10;
+  }
+
+  nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 30px;
+  }
+
+  nav a {
+    font-family: 'Space Grotesk', sans-serif;
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 700;
+    transition: color 0.3s ease;
+  }
+
+  nav a:hover {
+    color: var(--neon-pink);
+  }
+
+  nav a.active {
+    color: var(--neon-pink);
+    text-decoration: underline;
+  }
+
+  /* 하단 저작권 텍스트 */
+  footer {
+    position: absolute;
+    bottom: 10px;
+    left: 40px;
+    z-index: 10;
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.4);
+  }
+
 </style>
 </head>
 <body>
 
   <header>
+    <div class="logo"></div>
     <h1>EXPANDED</h1>
   </header>
 
@@ -146,39 +302,70 @@
     <svg id="network-lines"></svg>
     </div>
 
+  <div id="curator-modal">
+    <div class="modal-close">×</div>
+    <div class="modal-title">CURATOR 1</div>
+    <div class="modal-img">포트폴리오 프리뷰 <br> 준비 중...</div>
+    <div class="modal-desc">큐레이터 1의 전시 공간입니다. 상세 소개와 작품들이 여기에 나타날 예정입니다. 오픈 준비 중!</div>
+  </div>
+
+  <nav>
+    <ul>
+      <li><a href="#">ABOUT</a></li>
+      <li><a href="#" class="active">CURATORS</a></li>
+      <li><a href="#">PROJECTS</a></li>
+      <li><a href="#">CONTACT</a></li>
+    </ul>
+  </nav>
+
+  <footer>COLLECTIVE. EXPANDED.</footer>
+
 <script>
   const container = document.getElementById('network-container');
   const svgLines = document.getElementById('network-lines');
-  const totalCurators = 16;
+  const modal = document.getElementById('curator-modal');
+  const modalClose = document.querySelector('.modal-close');
+  const modalTitle = document.querySelector('.modal-title');
+  const totalNodes = 16;
   const nodes = [];
 
-  const MIN_DIST_PERCENT = 10; 
+  // 배치 최소 거리 (화면 대비 %) 및 깊이값 범위
+  const MIN_DIST_PERCENT = 12; 
   const MAX_ATTEMPTS = 100; 
+  const DEPTH_RANGE = 250; // Z축 깊이 범위
 
-  function getDistancePercent(p1, p2) {
+  function getDistance3D(p1, p2) {
     const dx = p1.x - p2.x;
     const dy = p1.y - p2.y;
+    // 거리는 평면상 거리만 계산하여 빌보딩을 위한 설정: 깊이로 인해 너무 멀어지지 않게 함
     return Math.sqrt(dx * dx + dy * dy);
   }
 
-  // 네트워크 노드 생성 함수
-  function generateNetworkOptimized() {
+  // 네트워크 생성 함수
+  function generateNetwork3D() {
     let svgHTML = '';
     let curatorsCreated = 0;
     
-    while (curatorsCreated < totalCurators) {
+    // SVG 좌표를 백분율(%)로 사용하기 위해 viewBox 설정 (100x100 도화지)
+    svgLines.setAttribute('viewBox', '0 0 100 100');
+
+    while (curatorsCreated < totalNodes) {
       let attempts = 0;
       let validPoint = null;
 
       while (attempts < MAX_ATTEMPTS) {
+        // 무작위 좌표 생성 (화면 중앙 70% 영역 내)
         const newX = 15 + Math.random() * 70; 
         const newY = 15 + Math.random() * 70;
-        const candidatePoint = { x: newX, y: newY };
+        // 깊이값 배정: 일정 범위 안에서 무작위 값 배정
+        const newZ = (Math.random() - 0.5) * DEPTH_RANGE; 
+
+        const candidatePoint = { x: newX, y: newY, z: newZ };
 
         let tooClose = false;
+        // 기존의 모든 노드와 평면상 거리 비교
         for (const existingNode of nodes) {
-          const distance = getDistancePercent(existingNode, candidatePoint);
-          if (distance < MIN_DIST_PERCENT) {
+          if (getDistance3D(existingNode, candidatePoint) < MIN_DIST_PERCENT) {
             tooClose = true;
             break; 
           }
@@ -197,20 +384,30 @@
 
         const nodeDiv = document.createElement('div');
         nodeDiv.classList.add('node');
+        // CSS 변수로 Y축 및 X축 역회전 값을 관리
+        nodeDiv.style.setProperty('--inv-y', `0deg`);
+        nodeDiv.style.setProperty('--inv-x', `0deg`);
+        // 3D 좌표 적용
         nodeDiv.style.left = `${validPoint.x}%`;
         nodeDiv.style.top = `${validPoint.y}%`;
+        nodeDiv.style.transform = `translate(-50%, -50%) translateZ(${validPoint.z}px)`;
+
+        const nodeCore = document.createElement('div');
+        nodeCore.classList.add('node-core');
+        nodeDiv.appendChild(nodeCore);
 
         const labelDiv = document.createElement('div');
         labelDiv.classList.add('label');
         labelDiv.textContent = `Curator ${validPoint.id}`;
         nodeDiv.appendChild(labelDiv);
 
-        // 노드 클릭 이벤트 (추후 모달 팝업 연결 부분)
+        // 노드 클릭 이벤트 (모달 팝업)
         nodeDiv.addEventListener('mousedown', (e) => {
           e.stopPropagation(); // 클릭 시 드래그 이벤트와 겹치지 않게 방지
         });
         nodeDiv.addEventListener('click', () => {
-          alert(`Curator ${validPoint.id} 공간 오픈 준비 중!`);
+          modalTitle.textContent = `CURATOR ${validPoint.id}`;
+          modal.classList.add('open');
         });
 
         container.appendChild(nodeDiv);
@@ -235,16 +432,32 @@
     svgLines.innerHTML = svgHTML;
   }
 
-  generateNetworkOptimized();
+  generateNetwork3D();
+
+  // --- 중요: 빌보딩 (노드를 항상 정면으로 유지) 로직 ---
+  function billboardNodes(rotX, rotY) {
+    const allNodes = document.querySelectorAll('.node');
+    // 컨테이너가 rotX, rotY만큼 회전했을 때, 각 노드는 그 역값으로 회전시켜야 정면을 바라봄
+    allNodes.forEach(node => {
+      // Y축 역회전과 X축 역회전 값을 CSS 변수로 업데이트
+      node.style.setProperty('--inv-y', `${-rotY}deg`);
+      node.style.setProperty('--inv-x', `${-rotX}deg`);
+    });
+  }
 
   // --- 3D 마우스 드래그 회전 로직 ---
   let isDragging = false;
   let previousX = 0;
   let previousY = 0;
-  let rotationX = 20; 
+  let rotationX = 20; // 초기값과 동일하게 설정
   let rotationY = -15;
 
+  // 초기 빌보딩 실행
+  billboardNodes(rotationX, rotationY);
+
   window.addEventListener('mousedown', (e) => {
+    // 모달창이 열려있거나 클릭 요소가 노드/모달 내부인 경우 드래그 무시
+    if (modal.classList.contains('open') || e.target.closest('#curator-modal') || e.target.closest('.node')) return;
     isDragging = true;
     previousX = e.clientX;
     previousY = e.clientY;
@@ -260,6 +473,7 @@
     const deltaX = e.clientX - previousX;
     const deltaY = e.clientY - previousY;
 
+    // 이동 거리에 비례하여 회전각 계산 (0.3은 마우스 감도, 취향껏 조절 가능)
     rotationY += deltaX * 0.3; 
     rotationX -= deltaY * 0.3; 
 
@@ -269,9 +483,30 @@
     // 컨테이너 회전 적용
     container.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
 
+    // 컨테이너가 회전할 때마다 빌보딩 로직 실행
+    billboardNodes(rotationX, rotationY);
+
     previousX = e.clientX;
     previousY = e.clientY;
   });
+
+  // --- 모달 제어 로직 ---
+  modalClose.addEventListener('click', () => {
+    modal.classList.remove('open');
+  });
+
+  window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('open');
+    }
+  });
+
+  // 반응형 처리 (화면 크기 변경 시에도 네트워크 유지)
+  window.addEventListener('resize', () => {
+    // SVG 선 위치가 화면 크기에 맞춰 자동으로 업데이트되지만, 빌보딩은 다시 적용해야 할 수 있음
+    billboardNodes(rotationX, rotationY);
+  });
+
 </script>
 
 </body>
