@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EXPANDED 3D Network (Perfect Center)</title>
+<title>EXPANDED 3D Spherical Network</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
 
@@ -20,9 +20,7 @@
     background-color: var(--bg-color);
     color: white;
     font-family: 'Space Grotesk', sans-serif;
-    perspective: 1200px;
-    /* [핵심 해결 1] 소실점을 파란색 동그라미의 정중앙인 55vh로 완벽히 고정 */
-    perspective-origin: 50% 55vh; 
+    perspective: 2000px; /* 구형 배치의 깊이감을 위해 원근감 증가 */
   }
 
   header {
@@ -35,6 +33,7 @@
     align-items: center;
   }
 
+  /* 로고 스타일 */
   .logo {
     width: 40px;
     height: 40px;
@@ -64,10 +63,10 @@
     letter-spacing: 2px;
   }
 
+  /* 3D 회전의 중심축 */
   #scene {
     position: absolute;
-    /* [핵심 해결 2] 3D 씬의 물리적 중심도 파란색 동그라미 정중앙(55vh)으로 일치 */
-    top: 55vh;  
+    top: 50vh;  
     left: 50vw; 
     width: 0;
     height: 0;
@@ -79,28 +78,31 @@
     cursor: grabbing;
   }
 
+  /* 두께를 가지는 3D 선 컨테이너 */
   .line3d {
     position: absolute;
     top: 0;
     left: 0;
-    height: 4px;
+    height: 3px; /* 쨍함을 위해 살짝 굵게 */
     transform-style: preserve-3d;
     pointer-events: none;
     transform-origin: center center;
   }
 
+  /* 십자(+) 형태로 교차하는 면 */
   .line3d .plane {
     position: absolute;
     width: 100%;
     height: 100%;
     background-color: var(--neon-pink);
-    opacity: 0.35;
-    box-shadow: 0 0 10px var(--neon-pink-dim);
+    opacity: 0.9; /* 쨍하게 */
+    box-shadow: 0 0 5px var(--neon-pink); /* 구형 입체감을 위해 빛 번짐 살짝 추가 */
   }
   .line3d .plane.cross {
     transform: rotateX(90deg); 
   }
 
+  /* 노드의 3D 좌표 이동 및 빌보딩을 담당하는 래퍼 */
   .node-wrapper {
     position: absolute;
     top: 0;
@@ -111,26 +113,27 @@
     z-index: 2;
   }
 
+  /* 실제 노드 디자인 및 호버 애니메이션 담당 */
   .node {
     position: absolute;
-    width: 20px;
-    height: 20px;
+    width: 22px; /* 살짝 키움 */
+    height: 22px;
     background-color: var(--bg-color);
-    border: 2px solid var(--neon-pink);
+    border: 2.5px solid var(--neon-pink);
     border-radius: 50%;
-    transform: translate(-50%, -50%); 
+    transform: translate(-50%, -50%); /* 중심점 정렬 */
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.25, 1.5, 0.5, 1); 
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 12px var(--neon-pink-dim);
+    box-shadow: 0 0 15px var(--neon-pink);
   }
 
   .node::after {
     content: '';
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     background-color: var(--neon-pink);
     border-radius: 50%;
     transition: all 0.3s ease;
@@ -139,32 +142,34 @@
   .node-wrapper:hover .node {
     transform: translate(-50%, -50%) scale(1.6);
     background-color: var(--neon-pink);
-    box-shadow: 0 0 25px var(--neon-pink);
+    box-shadow: 0 0 35px var(--neon-pink);
   }
 
   .node-wrapper:hover .node::after {
     background-color: var(--bg-color);
   }
 
+  /* 큐레이터 이름 툴팁 - 노드 중앙에 오도록 조정 */
   .label {
     position: absolute;
-    top: 25px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 0;
+    left: 0;
     color: white;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     white-space: nowrap;
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+    text-shadow: 0 2px 5px rgba(0,0,0,1);
     font-weight: 700;
+    /* 빌보딩 처리를 위해 JS에서 역회전 적용 */
   }
 
   .node-wrapper:hover .label {
     opacity: 1;
   }
 
+  /* --- 줌 컨트롤 레버 --- */
   .zoom-control-container {
     position: fixed;
     right: 40px;
@@ -226,11 +231,12 @@
     <h1>EXPANDED</h1>
   </header>
 
-  <div id="scene"></div>
+  <div id="scene">
+    </div>
 
   <div class="zoom-control-container">
     <div class="slider-wrapper">
-      <input type="range" id="zoom-lever" min="-2500" max="1000" value="-1200" step="10">
+      <input type="range" id="zoom-lever" min="-3000" max="1000" value="-1500" step="10">
     </div>
     <span class="zoom-label">ZOOM</span>
   </div>
@@ -240,22 +246,30 @@
   const totalCurators = 16;
   const nodes = [];
 
-  function generateNetwork3D() {
-    for (let i = 0; i < totalCurators; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      // 파란 영역 안에 알맞게 차도록 반지름 범위 세밀 조정
-      const radius = 600 + (Math.random() * 400); 
-      // 도넛이 너무 뚱뚱해지지 않게 Y축(두께) 압축
-      const y = (Math.random() - 0.5) * 400; 
+  // 구형 네트워크 생성 (Fibonacci Sphere Algorithm 사용)
+  function generateNetworkSpherical() {
+    const SPHERE_RADIUS = 500; // 구의 반지름
+    const golden_ratio = (1 + Math.sqrt(5)) / 2; // 황금비
 
-      const x = Math.cos(angle) * radius;
-      const z = Math.sin(angle) * radius;
+    // 1. 노드 생성 및 구 표면 배치
+    for (let i = 0; i < totalCurators; i++) {
+      // 황금비를 이용해 구 표면에 점들을 균일하게 분포
+      const y = (i / (totalCurators - 1) * 2 - 1) * SPHERE_RADIUS;
+      const r = Math.sqrt(SPHERE_RADIUS * SPHERE_RADIUS - y * y); // 해당 높이에서의 단면 반지름
+
+      const phi = (i / golden_ratio) * Math.PI * 2; // 방위각
+
+      const x = r * Math.cos(phi);
+      const z = r * Math.sin(phi);
       
       nodes.push({ id: i + 1, x: x, y: y, z: z });
 
       const wrapperDiv = document.createElement('div');
       wrapperDiv.classList.add('node-wrapper');
       wrapperDiv.id = `node-${i}`;
+      
+      // 3D 좌표 적용 (translate3d)
+      wrapperDiv.style.transform = `translate3d(${x}px, ${y}px, ${z}px)`;
       
       const nodeDiv = document.createElement('div');
       nodeDiv.classList.add('node');
@@ -264,6 +278,9 @@
       labelDiv.classList.add('label');
       labelDiv.textContent = `Curator ${i + 1}`;
       
+      // 빌보딩 처리를 위해 초기 역회전 값 설정
+      labelDiv.style.transform = 'translate3d(calc(-50% + 20px), calc(-50% + 15px), 0px) rotateY(20deg) rotateX(-15deg)';
+
       wrapperDiv.appendChild(nodeDiv);
       wrapperDiv.appendChild(labelDiv);
 
@@ -275,6 +292,7 @@
       scene.appendChild(wrapperDiv);
     }
 
+    // 2. 연결 로직 (구 내부를 가로지르는 망 구축)
     for (let i = 0; i < totalCurators; i++) {
       const target1 = (i + 1) % totalCurators;
       const target2 = (i + 4) % totalCurators; 
@@ -314,26 +332,30 @@
     scene.appendChild(line);
   }
 
-  generateNetwork3D();
+  generateNetworkSpherical();
 
   let isDragging = false;
   let previousX = 0, previousY = 0;
-  // 도넛이 예쁘게 보이도록 초기 각도 설정
-  let rotationX = 20, rotationY = -30;
+  // 구형 망이 예쁘게 보이도록 초기 각도 설정
+  let rotationX = 15, rotationY = -20;
   
   const zoomLever = document.getElementById('zoom-lever');
 
   function updateTransform() {
     const zoomValue = zoomLever.value;
 
+    // 씬 전체 회전 및 줌 적용
     scene.style.transform = `translateZ(${zoomValue}px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
     
-    nodes.forEach((p, i) => {
-      const wrapperEl = document.getElementById(`node-${i}`);
-      wrapperEl.style.transform = `translate3d(${p.x}px, ${p.y}px, ${p.z}px) rotateY(${-rotationY}deg) rotateX(${-rotationX}deg)`;
+    // 빌보딩 처리: 각 노드 래퍼는 씬의 역회전 값을 적용하여 항상 사용자를 바라보게 함
+    const nodeLabels = document.querySelectorAll('.label');
+    nodeLabels.forEach(label => {
+      // 툴팁 위치 조정 및 역회전 적용 (찌그러짐 방지)
+      label.style.transform = `translate3d(calc(-50% + 20px), calc(-50% + 15px), 0px) rotateY(${-rotationY}deg) rotateX(${-rotationX}deg)`;
     });
   }
 
+  // 초기 렌더링 시 빌보딩 적용
   updateTransform();
 
   window.addEventListener('mousedown', (e) => {
