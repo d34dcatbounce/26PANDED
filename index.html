@@ -1,357 +1,55 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EXPANDED Real 3D Network</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
-
-  :root {
-    --bg-color: #050505;
-    --neon-pink: #FF007F;
-    --neon-pink-dim: rgba(255, 0, 127, 0.4);
-    --hover-neon: #FF66CC;
-    --text-color: white;
-  }
-
-  body {
-    margin: 0;
-    overflow: hidden;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-family: 'Space Grotesk', sans-serif;
-    perspective: 1200px; /* 전체 화면 원근감 */
-  }
-
-  header {
-    position: absolute;
-    top: 30px;
-    left: 40px;
-    z-index: 10;
-    pointer-events: none;
-    display: flex;
-    align-items: center;
-  }
-
-  .logo {
-    width: 40px;
-    height: 40px;
-    border: 2px solid var(--neon-pink);
-    border-radius: 50%;
-    margin-right: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .logo::before {
-    content: 'EP';
-    font-family: 'Syncopate', sans-serif;
-    color: var(--neon-pink);
-    font-size: 1.2rem;
-    font-weight: 700;
-  }
-
-  h1 {
-    font-family: 'Syncopate', sans-serif;
-    color: var(--neon-pink);
-    font-size: 2.8rem;
-    margin: 0;
-    text-shadow: 0 0 10px var(--neon-pink-dim), 0 0 25px var(--neon-pink-dim);
-    letter-spacing: 3px;
-  }
-
-  /* 3D 씬 중앙 정렬 컨테이너 */
-  #scene {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    transform-style: preserve-3d;
-    cursor: grab;
-    /* 초기 각도 */
-    transform: rotateX(15deg) rotateY(-20deg);
-  }
-
-  #scene:active {
-    cursor: grabbing;
-  }
-
-  /* 3D 선 (DIV 요소) */
-  .line3d {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 1.5px;
-    background-color: var(--neon-pink);
-    opacity: 0.35;
-    transform-origin: center center;
-    pointer-events: none;
-    box-shadow: 0 0 5px var(--neon-pink-dim);
-  }
-
-  /* 큐레이터 노드 */
-  .node {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 26px;
-    height: 26px;
-    background-color: transparent;
-    cursor: pointer;
-    transition: width 0.3s, height 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transform-origin: center center;
-  }
-
-  .node-core {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background-color: var(--bg-color);
-    border: 3px solid var(--neon-pink);
-    box-shadow: 0 0 15px var(--neon-pink-dim), inset 0 0 5px var(--neon-pink-dim);
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .node-core::after {
-    content: '';
-    width: 6px;
-    height: 6px;
-    background-color: var(--neon-pink);
-    border-radius: 50%;
-    transition: all 0.3s ease;
-  }
-
-  .node:hover .node-core {
-    transform: scale(1.5);
-    background-color: var(--hover-neon);
-    border-color: var(--hover-neon);
-    box-shadow: 0 0 35px var(--neon-pink);
-  }
-  .node:hover .node-core::after {
-    background-color: var(--bg-color);
-  }
-
-  /* 노드 이름 라벨 */
-  .label {
-    position: absolute;
-    top: 35px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: white;
-    font-size: 0.85rem;
-    white-space: nowrap;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-    font-weight: 700;
-    background-color: rgba(0,0,0,0.8);
-    padding: 4px 10px;
-    border-radius: 4px;
-    border: 1px solid var(--neon-pink-dim);
-  }
-
-  .node:hover .label {
-    opacity: 1;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXPANDED | Neon Frontiers</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/shaders/DepthOfFieldShader.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/DepthOfFieldPass.js"></script>
 </head>
 <body>
+    <canvas id="webgl-canvas"></canvas>
 
-  <header>
-    <div class="logo"></div>
-    <h1>EXPANDED</h1>
-  </header>
+    <header>
+        <img src="logo.png" alt="EP Logo" class="logo">
+        <h1 class="title">EXPANDED</h1>
+    </header>
 
-  <div id="scene">
-    <div id="lines-container"></div>
-    <div id="nodes-container"></div>
-  </div>
+    <div id="info-panel" class="info-panel hidden">
+        <div class="info-header">
+            <span class="info-label">CURATOR:</span>
+            <span id="curator-name" class="info-value">JAKE LEE</span>
+        </div>
+        <div class="info-theme">
+            <span class="info-label">THEME:</span>
+            <span id="theme-name" class="info-value">"NEON FRONTIERS"</span>
+        </div>
+        <div class="info-status">
+            <span class="info-label">STATUS:</span>
+            <span class="info-value live">LIVE</span>
+        </div>
+        <div class="info-preview">
+            <div class="preview-box"></div>
+        </div>
+    </div>
 
-<script>
-  const scene = document.getElementById('scene');
-  const nodesContainer = document.getElementById('nodes-container');
-  const linesContainer = document.getElementById('lines-container');
-  
-  const totalNodes = 16;
-  const nodes = [];
+    <footer>
+        <nav>
+            <ul>
+                <li><a href="#" class="nav-link">HOME</a></li>
+                <li><a href="#" class="nav-link active">CURATIONS</a></li>
+                <li><a href="#" class="nav-link">COLLECTIVE</a></li>
+                <li><a href="#" class="nav-link">CONTACT</a></li>
+            </ul>
+        </nav>
+    </footer>
 
-  // 공간의 크기 제한 (픽셀 단위)
-  const SPACE_WIDTH = 800;  // X축 범위
-  const SPACE_HEIGHT = 500; // Y축 범위
-  const SPACE_DEPTH = 600;  // Z축 범위 (깊이)
-  const MIN_DIST = 150;     // 노드 간 최소 거리 (픽셀)
-
-  // 3D 거리 계산 함수
-  function getDistance3D(p1, p2) {
-    const dx = p1.x - p2.x;
-    const dy = p1.y - p2.y;
-    const dz = p1.z - p2.z;
-    return Math.hypot(dx, dy, dz); // 피타고라스 3D
-  }
-
-  // 1. 노드 생성 및 배치
-  function createNodes() {
-    let count = 0;
-    
-    while (count < totalNodes) {
-      // 공간 내에서 무작위 좌표 생성
-      const x = (Math.random() - 0.5) * SPACE_WIDTH;
-      const y = (Math.random() - 0.5) * SPACE_HEIGHT;
-      const z = (Math.random() - 0.5) * SPACE_DEPTH;
-      const candidate = { id: count + 1, x, y, z };
-
-      // 최소 거리 체크
-      let isTooClose = false;
-      for (const node of nodes) {
-        if (getDistance3D(node, candidate) < MIN_DIST) {
-          isTooClose = true;
-          break;
-        }
-      }
-
-      if (!isTooClose) {
-        nodes.push(candidate);
-        
-        const nodeDiv = document.createElement('div');
-        nodeDiv.classList.add('node');
-        nodeDiv.id = `node-${candidate.id}`;
-        
-        const coreDiv = document.createElement('div');
-        coreDiv.classList.add('node-core');
-        nodeDiv.appendChild(coreDiv);
-
-        const labelDiv = document.createElement('div');
-        labelDiv.classList.add('label');
-        labelDiv.textContent = `Curator ${candidate.id}`;
-        nodeDiv.appendChild(labelDiv);
-
-        // 노드 클릭 방해 방지
-        nodeDiv.addEventListener('mousedown', e => e.stopPropagation());
-        nodeDiv.addEventListener('click', () => alert(`Curator ${candidate.id} 클릭됨!`));
-
-        nodesContainer.appendChild(nodeDiv);
-        count++;
-      }
-    }
-  }
-
-  // 2. 가장 가까운 노드끼리 선 연결 (망 구축)
-  function createConnections() {
-    const connections = new Set(); // 중복 연결 방지
-
-    for (let i = 0; i < nodes.length; i++) {
-      const nodeA = nodes[i];
-      
-      // 다른 모든 노드와의 거리를 계산하여 정렬
-      const distances = nodes
-        .map((nodeB, index) => ({ index, dist: getDistance3D(nodeA, nodeB) }))
-        .filter(item => item.index !== i)
-        .sort((a, b) => a.dist - b.dist);
-
-      // 가장 가까운 3개의 노드와 연결 (원하는 연결 개수에 따라 숫자 조절)
-      for (let j = 0; j < 3; j++) {
-        const targetIndex = distances[j].index;
-        const nodeB = nodes[targetIndex];
-        
-        // 연결 고유 ID 생성 (작은 번호_큰 번호)
-        const minId = Math.min(nodeA.id, nodeB.id);
-        const maxId = Math.max(nodeA.id, nodeB.id);
-        const connId = `${minId}_${maxId}`;
-
-        if (!connections.has(connId)) {
-          connections.add(connId);
-          drawLine3D(nodeA, nodeB);
-        }
-      }
-    }
-  }
-
-  // 3. 두 점 사이에 3D 선(Div) 그리기 (핵심 로직)
-  function drawLine3D(p1, p2) {
-    const dx = p2.x - p1.x;
-    const dy = p2.y - p1.y;
-    const dz = p2.z - p1.z;
-    const length = Math.hypot(dx, dy, dz);
-    
-    // 두 점의 중간 지점
-    const cx = (p1.x + p2.x) / 2;
-    const cy = (p1.y + p2.y) / 2;
-    const cz = (p1.z + p2.z) / 2;
-
-    // 회전 각도 계산 (3D 삼각함수)
-    const rotY = Math.atan2(-dz, dx) * (180 / Math.PI);
-    const rotZ = Math.atan2(dy, Math.hypot(dx, dz)) * (180 / Math.PI);
-
-    const line = document.createElement('div');
-    line.classList.add('line3d');
-    line.style.width = `${length}px`;
-    
-    // 중앙 지점으로 이동 후 X/Y축 회전 적용
-    line.style.transform = `translate3d(calc(-50% + ${cx}px), calc(-50% + ${cy}px), ${cz}px) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`;
-    
-    linesContainer.appendChild(line);
-  }
-
-  // --- 실행 ---
-  createNodes();
-  createConnections();
-
-  // --- 3D 마우스 드래그 회전 & 빌보딩 (정면 보기) ---
-  let isDragging = false;
-  let previousX = 0, previousY = 0;
-  let rotationX = 15;
-  let rotationY = -20;
-
-  function updateTransform() {
-    // 1. 무대(scene) 회전
-    scene.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
-    
-    // 2. 노드 빌보딩: 무대 회전의 '역방향'으로 개별 노드 회전
-    // 노드의 기준 좌표에 역회전 적용
-    nodes.forEach((p, i) => {
-      const nodeEl = document.getElementById(`node-${p.id}`);
-      nodeEl.style.transform = `translate3d(calc(-50% + ${p.x}px), calc(-50% + ${p.y}px), ${p.z}px) rotateY(${-rotationY}deg) rotateX(${-rotationX}deg)`;
-    });
-  }
-
-  // 초기 렌더링 시 빌보딩 적용
-  updateTransform();
-
-  window.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.node')) return; // 노드 클릭 시 드래그 방지
-    isDragging = true;
-    previousX = e.clientX;
-    previousY = e.clientY;
-  });
-
-  window.addEventListener('mouseup', () => isDragging = false);
-  window.addEventListener('mouseleave', () => isDragging = false);
-
-  window.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-
-    const deltaX = e.clientX - previousX;
-    const deltaY = e.clientY - previousY;
-
-    rotationY += deltaX * 0.3; // 회전 감도
-    rotationX -= deltaY * 0.3;
-
-    rotationX = Math.max(-80, Math.min(80, rotationX)); // 상하 회전 제한
-
-    updateTransform();
-
-    previousX = e.clientX;
-    previousY = e.clientY;
-  });
-</script>
-
+    <script src="script.js"></script>
 </body>
 </html>
