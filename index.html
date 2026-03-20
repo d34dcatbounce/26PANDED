@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EXPANDED 3D Network (Organic Connections)</title>
+<title>EXPANDED 3D Network (Original Connections & Tall)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
 
@@ -228,11 +228,11 @@
   const nodes = [];
 
   function generateNetwork3D() {
-    // 1. 노드 생성
+    // 1. 노드 생성 (세로 넓게 퍼진 상태 유지)
     for (let i = 0; i < totalCurators; i++) {
       const angle = Math.random() * Math.PI * 2;
       const radius = 600 + (Math.random() * 400); 
-      // [수정] 세로축(Y) 범위를 400에서 800으로 늘려 위아래로 더 퍼지게 함
+      // 세로축(Y) 범위 800 유지
       const y = (Math.random() - 0.5) * 800; 
 
       const x = Math.cos(angle) * radius;
@@ -278,38 +278,13 @@
       curatorList.appendChild(listItem);
     }
 
-    // 2. 연결 로직 [수정] - 가장 가까운 이웃 3개와 연결 (거미줄처럼 매끄럽게)
-    const drawnLines = new Set(); // 중복 선 방지용
-
+    // 2. 연결 로직 (원래 방식 복구: i+1, i+4)
     for (let i = 0; i < totalCurators; i++) {
-      const nodeA = nodes[i];
+      const target1 = (i + 1) % totalCurators;
+      const target2 = (i + 4) % totalCurators; 
       
-      // A노드와 다른 모든 노드들 간의 거리를 계산
-      const distances = nodes.map((nodeB, index) => {
-        if (i === index) return { index, dist: Infinity }; // 자기 자신 제외
-        const dx = nodeA.x - nodeB.x;
-        const dy = nodeA.y - nodeB.y;
-        const dz = nodeA.z - nodeB.z;
-        return { index, dist: Math.hypot(dx, dy, dz) };
-      });
-
-      // 거리가 가까운 순으로 정렬
-      distances.sort((a, b) => a.dist - b.dist);
-
-      // 가장 가까운 3개의 노드와 선 연결
-      for (let j = 0; j < 3; j++) {
-        const targetIndex = distances[j].index;
-        const nodeB = nodes[targetIndex];
-        
-        const minId = Math.min(nodeA.id, nodeB.id);
-        const maxId = Math.max(nodeA.id, nodeB.id);
-        const lineId = `${minId}-${maxId}`;
-
-        if (!drawnLines.has(lineId)) {
-          drawnLines.add(lineId);
-          drawLine3D(nodeA, nodeB);
-        }
-      }
+      drawLine3D(nodes[i], nodes[target1]);
+      drawLine3D(nodes[i], nodes[target2]);
     }
   }
 
