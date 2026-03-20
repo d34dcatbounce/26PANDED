@@ -1,0 +1,143 @@
+/* style.css */
+
+/* Basic Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #000000;
+    color: #ffffff;
+    font-family: 'Modernist Sans-serif', sans-serif; /* Modernist Sans-serif approximation */
+    overflow: hidden; /* Prevent scrolling */
+    width: 100vw;
+    height: 100vh;
+}
+
+/* modern font loading example - replace with actual modern sans-serif font if available */
+@font-face {
+    font-family: 'Modernist Sans-serif';
+    src: url('path/to/modernist-sans.woff2') format('woff2'); /* Add path to font file */
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Main Canvas */
+#webgl-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+/* Header */
+header {
+    position: absolute;
+    top: 30px;
+    left: 40px;
+    display: flex;
+    align-items: center;
+    z-index: 10;
+}
+
+.logo {
+    height: 40px;
+    margin-right: 15px;
+}
+
+.title {
+    color: #FF1493; /* Hot Pink */
+    font-size: 32px;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+}
+
+/* Info Panel (Hover Overlay) */
+.info-panel {
+    position: absolute;
+    top: 50%;
+    left: 60%; /* Adjust position based on layout */
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 1px solid #FF1493;
+    padding: 20px;
+    border-radius: 10px;
+    z-index: 100;
+    pointer-events: none; /* Let clicks pass through to 3D elements */
+    transition: opacity 0.3s ease;
+    width: 280px;
+}
+
+.info-panel.hidden {
+    opacity: 0;
+}
+
+.info-header, .info-theme, .info-status {
+    margin-bottom: 8px;
+}
+
+.info-label {
+    color: #ffffff;
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.info-value {
+    color: #FF1493;
+}
+
+.info-status .info-value.live {
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.info-preview {
+    margin-top: 15px;
+    width: 100%;
+    height: 120px;
+}
+
+.preview-box {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 20, 147, 0.2);
+    border: 1px dashed #FF1493;
+    border-radius: 5px;
+}
+
+/* Navigation Bar (Footer) */
+footer {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+    gap: 30px;
+}
+
+.nav-link {
+    color: #FF1493;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #ffffff;
+}
+
+.nav-link.active {
+    color: #ffffff;
+}
