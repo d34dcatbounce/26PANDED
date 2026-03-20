@@ -1,55 +1,256 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EXPANDED | Neon Frontiers</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/shaders/DepthOfFieldShader.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/DepthOfFieldPass.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EXPANDED 3D Network</title>
+<style>
+  /* 사이버펑크/네온 감성에 어울리는 폰트 임포트 */
+  @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
+
+  :root {
+    --bg-color: #050505;
+    --neon-pink: #FF007F;
+    --neon-pink-dim: rgba(255, 0, 127, 0.3);
+  }
+
+  body {
+    margin: 0;
+    overflow: hidden; /* 방사형 뷰를 위해 스크롤 방지 */
+    background-color: var(--bg-color);
+    color: white;
+    font-family: 'Space Grotesk', sans-serif;
+    perspective: 1000px; /* 3D 원근감 부여 */
+  }
+
+  header {
+    position: absolute;
+    top: 30px;
+    left: 40px;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  h1 {
+    font-family: 'Syncopate', sans-serif;
+    color: var(--neon-pink);
+    font-size: 2.5rem;
+    margin: 0;
+    text-shadow: 0 0 10px var(--neon-pink-dim), 0 0 20px var(--neon-pink-dim);
+    letter-spacing: 2px;
+  }
+
+  /* 3D 회전의 중심축 역할을 할 컨테이너 */
+  #scene {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    transform-style: preserve-3d;
+    cursor: grab;
+    transform: rotateX(15deg) rotateY(-20deg); /* 초기 살짝 비틀어진 각도 */
+  }
+
+  #scene:active {
+    cursor: grabbing;
+  }
+
+  /* 3D 선 */
+  .line3d {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 1.5px;
+    background-color: var(--neon-pink);
+    opacity: 0.3;
+    pointer-events: none;
+    transform-origin: center center;
+  }
+
+  /* 큐레이터 노드 */
+  .node {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    background-color: var(--bg-color);
+    border: 2px solid var(--neon-pink);
+    border-radius: 50%;
+    z-index: 2;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 12px var(--neon-pink-dim);
+    /* 노드가 3D 공간에 배치될 때 사용 */
+    transform-origin: center center;
+  }
+
+  .node::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background-color: var(--neon-pink);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+  }
+
+  .node:hover {
+    background-color: var(--neon-pink);
+    box-shadow: 0 0 25px var(--neon-pink);
+  }
+
+  .node:hover::after {
+    background-color: var(--bg-color);
+  }
+
+  /* 큐레이터 이름 툴팁 */
+  .label {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    font-weight: 700;
+  }
+
+  .node:hover .label {
+    opacity: 1;
+  }
+</style>
 </head>
 <body>
-    <canvas id="webgl-canvas"></canvas>
 
-    <header>
-        <img src="logo.png" alt="EP Logo" class="logo">
-        <h1 class="title">EXPANDED</h1>
-    </header>
+  <header>
+    <h1>EXPANDED</h1>
+  </header>
 
-    <div id="info-panel" class="info-panel hidden">
-        <div class="info-header">
-            <span class="info-label">CURATOR:</span>
-            <span id="curator-name" class="info-value">JAKE LEE</span>
-        </div>
-        <div class="info-theme">
-            <span class="info-label">THEME:</span>
-            <span id="theme-name" class="info-value">"NEON FRONTIERS"</span>
-        </div>
-        <div class="info-status">
-            <span class="info-label">STATUS:</span>
-            <span class="info-value live">LIVE</span>
-        </div>
-        <div class="info-preview">
-            <div class="preview-box"></div>
-        </div>
+  <div id="scene">
     </div>
 
-    <footer>
-        <nav>
-            <ul>
-                <li><a href="#" class="nav-link">HOME</a></li>
-                <li><a href="#" class="nav-link active">CURATIONS</a></li>
-                <li><a href="#" class="nav-link">COLLECTIVE</a></li>
-                <li><a href="#" class="nav-link">CONTACT</a></li>
-            </ul>
-        </nav>
-    </footer>
+<script>
+  const scene = document.getElementById('scene');
+  const totalCurators = 16;
+  const nodes = [];
 
-    <script src="script.js"></script>
+  // 화면 중앙을 (0,0,0)으로 하는 3D 공간 범위 (픽셀)
+  const RANGE = 400; 
+
+  function generateNetwork3D() {
+    // 1. 16개의 노드 3D 좌표 생성 (X, Y, Z축)
+    for (let i = 0; i < totalCurators; i++) {
+      // -200px ~ 200px 사이의 무작위 3D 좌표 배정
+      const x = (Math.random() - 0.5) * RANGE;
+      const y = (Math.random() - 0.5) * RANGE;
+      const z = (Math.random() - 0.5) * RANGE;
+      
+      nodes.push({ id: i + 1, x: x, y: y, z: z });
+
+      const nodeDiv = document.createElement('div');
+      nodeDiv.classList.add('node');
+      nodeDiv.id = `node-${i}`;
+      
+      // X, Y, Z 좌표를 translate3d로 적용
+      nodeDiv.style.transform = `translate3d(calc(-50% + ${x}px), calc(-50% + ${y}px), ${z}px)`;
+
+      const labelDiv = document.createElement('div');
+      labelDiv.classList.add('label');
+      labelDiv.textContent = `Curator ${i + 1}`;
+      nodeDiv.appendChild(labelDiv);
+
+      nodeDiv.addEventListener('mousedown', e => e.stopPropagation()); // 드래그 꼬임 방지
+      nodeDiv.addEventListener('click', () => {
+        alert(`Curator ${i + 1}의 전시 공간으로 이동합니다.`);
+      });
+
+      scene.appendChild(nodeDiv);
+    }
+
+    // 2. 보내주신 4번 코드의 연결 로직 그대로 적용 ((i+1)과 (i+4) 연결)
+    for (let i = 0; i < totalCurators; i++) {
+      const target1 = (i + 1) % totalCurators;
+      const target2 = (i + 4) % totalCurators; 
+      
+      drawLine3D(nodes[i], nodes[target1]);
+      drawLine3D(nodes[i], nodes[target2]);
+    }
+  }
+
+  // 두 3D 점을 선으로 잇는 수학 함수
+  function drawLine3D(p1, p2) {
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const dz = p2.z - p1.z;
+    const length = Math.hypot(dx, dy, dz);
+    
+    // 중앙점 계산
+    const cx = (p1.x + p2.x) / 2;
+    const cy = (p1.y + p2.y) / 2;
+    const cz = (p1.z + p2.z) / 2;
+
+    // 회전 각도 계산
+    const rotY = Math.atan2(-dz, dx) * (180 / Math.PI);
+    const rotZ = Math.atan2(dy, Math.hypot(dx, dz)) * (180 / Math.PI);
+
+    const line = document.createElement('div');
+    line.classList.add('line3d');
+    line.style.width = `${length}px`;
+    line.style.transform = `translate3d(calc(-50% + ${cx}px), calc(-50% + ${cy}px), ${cz}px) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`;
+    
+    scene.appendChild(line);
+  }
+
+  // 실행
+  generateNetwork3D();
+
+  // --- 마우스 드래그로 3D 공간 회전시키기 ---
+  let isDragging = false;
+  let previousX = 0, previousY = 0;
+  let rotationX = 15, rotationY = -20;
+
+  window.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    previousX = e.clientX;
+    previousY = e.clientY;
+  });
+
+  window.addEventListener('mouseup', () => isDragging = false);
+  window.addEventListener('mouseleave', () => isDragging = false);
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+
+    const deltaX = e.clientX - previousX;
+    const deltaY = e.clientY - previousY;
+
+    // G102 마우스로 부드럽게 돌아가도록 감도(0.3) 설정
+    rotationY += deltaX * 0.3; 
+    rotationX -= deltaY * 0.3;
+
+    rotationX = Math.max(-80, Math.min(80, rotationX)); // 위아래 회전각 제한
+
+    // 씬 전체 회전 및 노드 정면보기(빌보딩) 적용
+    scene.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+    
+    nodes.forEach((p, i) => {
+      const nodeEl = document.getElementById(`node-${i}`);
+      // 노드 크기가 커지는 호버 이벤트를 살리기 위해 scale 속성은 제외하고 회전만 역으로 적용
+      nodeEl.style.transform = `translate3d(calc(-50% + ${p.x}px), calc(-50% + ${p.y}px), ${p.z}px) rotateY(${-rotationY}deg) rotateX(${-rotationX}deg)`;
+    });
+
+    previousX = e.clientX;
+    previousY = e.clientY;
+  });
+
+</script>
 </body>
 </html>
