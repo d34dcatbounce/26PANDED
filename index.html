@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EXPANDED 3D Network (Interactive UI)</title>
+<title>EXPANDED 3D Network (Organic Connections)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
 
@@ -76,7 +76,6 @@
     cursor: grabbing;
   }
 
-  /* --- [수정됨] 선 빛번짐 제거 및 깔끔한 선 처리 --- */
   .line3d {
     position: absolute;
     top: 0;
@@ -92,8 +91,7 @@
     width: 100%;
     height: 100%;
     background-color: var(--neon-pink);
-    opacity: 0.6; /* 그림자를 빼고 불투명도를 살짝 낮춤 */
-    /* box-shadow 제거! */
+    opacity: 0.6; 
   }
   .line3d .plane.cross {
     transform: rotateX(90deg); 
@@ -124,7 +122,6 @@
     justify-content: center;
   }
 
-  /* 노드 내부 점 */
   .node::after {
     content: '';
     width: 6px;
@@ -134,12 +131,11 @@
     transition: all 0.3s ease;
   }
 
-  /* --- 노드 호버 및 활성화(불 들어옴) 스타일 --- */
   .node-wrapper:hover .node, .node.active-highlight {
     transform: translate(-50%, -50%) scale(2);
     background-color: var(--neon-pink);
     border-color: #fff;
-    box-shadow: 0 0 40px var(--neon-pink), 0 0 15px white; /* 강렬한 불빛 */
+    box-shadow: 0 0 40px var(--neon-pink), 0 0 15px white; 
     z-index: 10;
   }
 
@@ -167,7 +163,6 @@
     color: var(--neon-pink);
   }
 
-  /* --- [새로 추가됨] 우측 큐레이터 리스트 --- */
   #curator-list {
     position: fixed;
     right: 40px;
@@ -197,7 +192,6 @@
     transform: translateX(-10px);
   }
 
-  /* 우측에 작은 선 인디케이터 */
   .list-item::after {
     content: '';
     position: absolute;
@@ -234,10 +228,12 @@
   const nodes = [];
 
   function generateNetwork3D() {
+    // 1. 노드 생성
     for (let i = 0; i < totalCurators; i++) {
       const angle = Math.random() * Math.PI * 2;
       const radius = 600 + (Math.random() * 400); 
-      const y = (Math.random() - 0.5) * 400; 
+      // [수정] 세로축(Y) 범위를 400에서 800으로 늘려 위아래로 더 퍼지게 함
+      const y = (Math.random() - 0.5) * 800; 
 
       const x = Math.cos(angle) * radius;
       const z = Math.sin(angle) * radius;
@@ -261,24 +257,20 @@
       wrapperDiv.addEventListener('mousedown', e => e.stopPropagation()); 
       scene.appendChild(wrapperDiv);
 
-      // --- 우측 리스트 아이템 생성 및 이벤트 연동 ---
       const listItem = document.createElement('div');
       listItem.className = 'list-item';
       listItem.textContent = `CURATOR ${i + 1}`;
       
-      // 1. 마우스 올리면 노드 불 켜짐
       listItem.addEventListener('mouseenter', () => {
         nodeDiv.classList.add('active-highlight');
         wrapperDiv.classList.add('active-wrapper');
       });
 
-      // 2. 마우스 내리면 불 꺼짐
       listItem.addEventListener('mouseleave', () => {
         nodeDiv.classList.remove('active-highlight');
         wrapperDiv.classList.remove('active-wrapper');
       });
 
-      // 3. 클릭 시 해당 노드를 화면 중앙으로 회전
       listItem.addEventListener('click', () => {
         centerNode(i);
       });
@@ -286,12 +278,38 @@
       curatorList.appendChild(listItem);
     }
 
-    // 연결선 생성
+    // 2. 연결 로직 [수정] - 가장 가까운 이웃 3개와 연결 (거미줄처럼 매끄럽게)
+    const drawnLines = new Set(); // 중복 선 방지용
+
     for (let i = 0; i < totalCurators; i++) {
-      const target1 = (i + 1) % totalCurators;
-      const target2 = (i + 4) % totalCurators; 
-      drawLine3D(nodes[i], nodes[target1]);
-      drawLine3D(nodes[i], nodes[target2]);
+      const nodeA = nodes[i];
+      
+      // A노드와 다른 모든 노드들 간의 거리를 계산
+      const distances = nodes.map((nodeB, index) => {
+        if (i === index) return { index, dist: Infinity }; // 자기 자신 제외
+        const dx = nodeA.x - nodeB.x;
+        const dy = nodeA.y - nodeB.y;
+        const dz = nodeA.z - nodeB.z;
+        return { index, dist: Math.hypot(dx, dy, dz) };
+      });
+
+      // 거리가 가까운 순으로 정렬
+      distances.sort((a, b) => a.dist - b.dist);
+
+      // 가장 가까운 3개의 노드와 선 연결
+      for (let j = 0; j < 3; j++) {
+        const targetIndex = distances[j].index;
+        const nodeB = nodes[targetIndex];
+        
+        const minId = Math.min(nodeA.id, nodeB.id);
+        const maxId = Math.max(nodeA.id, nodeB.id);
+        const lineId = `${minId}-${maxId}`;
+
+        if (!drawnLines.has(lineId)) {
+          drawnLines.add(lineId);
+          drawLine3D(nodeA, nodeB);
+        }
+      }
     }
   }
 
@@ -335,7 +353,6 @@
   const MAX_ZOOM = 1000;
   const ZOOM_SPEED = 1.5; 
 
-  // --- 자동 회전 애니메이션 변수 ---
   let isAutoRotating = false;
   let targetRotX = null;
   let targetRotY = null;
@@ -343,7 +360,6 @@
   function updateTransform() {
     scene.style.transform = `translateZ(${currentZoom}px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
     
-    // 빌보딩 처리 (정면 주시)
     nodes.forEach((p, i) => {
       const wrapperEl = document.getElementById(`node-${i}`);
       wrapperEl.style.transform = `translate3d(${p.x}px, ${p.y}px, ${p.z}px) rotateY(${-rotationY}deg) rotateX(${-rotationX}deg)`;
@@ -352,17 +368,11 @@
 
   updateTransform();
 
-  // --- 클릭 시 노드를 중앙으로 가져오는 로직 ---
   function centerNode(nodeIndex) {
     const node = nodes[nodeIndex];
-
-    // 목표 Y축 회전각 계산 (점의 좌표를 삼각함수로 역계산하여 카메라 정면으로 오게 함)
     let targetY = -Math.atan2(node.x, node.z) * (180 / Math.PI);
-    
-    // 목표 X축 회전각 계산
     let targetX = Math.atan2(node.y, Math.hypot(node.x, node.z)) * (180 / Math.PI);
 
-    // 가장 가까운 방향으로 돌기 위한 각도 정규화 (-180 ~ 180도로 맞춤)
     let currentY = rotationY % 360;
     if (currentY < 0) currentY += 360; 
     let ty = targetY % 360;
@@ -379,17 +389,14 @@
     animateRotation();
   }
 
-  // 부드러운 회전 애니메이션 루프
   function animateRotation() {
     if (!isAutoRotating) return;
 
-    // 감속도(Lerp)를 주어 스무스하게 회전
     rotationX += (targetRotX - rotationX) * 0.08;
     rotationY += (targetRotY - rotationY) * 0.08;
 
     updateTransform();
 
-    // 목표치에 도달하면 애니메이션 종료
     if (Math.abs(targetRotX - rotationX) < 0.1 && Math.abs(targetRotY - rotationY) < 0.1) {
       isAutoRotating = false;
     } else {
@@ -397,10 +404,8 @@
     }
   }
 
-  // --- 이벤트 리스너 ---
-
   window.addEventListener('wheel', (e) => {
-    isAutoRotating = false; // 마우스 조작 시 자동회전 취소
+    isAutoRotating = false; 
     currentZoom -= e.deltaY * ZOOM_SPEED;
     currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, currentZoom));
     updateTransform();
@@ -409,7 +414,7 @@
   window.addEventListener('mousedown', (e) => {
     if (e.target.closest('.node-wrapper') || e.target.closest('#curator-list')) return;
     
-    isAutoRotating = false; // 마우스 조작 시 자동회전 취소
+    isAutoRotating = false; 
     isDragging = true;
     previousX = e.clientX;
     previousY = e.clientY;
