@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EXPANDED 3D Network (Fixed Perspective)</title>
+<title>EXPANDED 3D Network (Perfect Center)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
 
@@ -21,8 +21,8 @@
     color: white;
     font-family: 'Space Grotesk', sans-serif;
     perspective: 1200px;
-    /* [핵심 해결책] 소실점 자체를 화면 중하단부(70%)로 끌어내림! */
-    perspective-origin: 50% 70%; 
+    /* [핵심 해결 1] 소실점을 파란색 동그라미의 정중앙인 55vh로 완벽히 고정 */
+    perspective-origin: 50% 55vh; 
   }
 
   header {
@@ -66,8 +66,8 @@
 
   #scene {
     position: absolute;
-    /* 소실점과 동일하게 70vh(중하단부)에 딱 고정 */
-    top: 70vh;  
+    /* [핵심 해결 2] 3D 씬의 물리적 중심도 파란색 동그라미 정중앙(55vh)으로 일치 */
+    top: 55vh;  
     left: 50vw; 
     width: 0;
     height: 0;
@@ -230,7 +230,7 @@
 
   <div class="zoom-control-container">
     <div class="slider-wrapper">
-      <input type="range" id="zoom-lever" min="-2000" max="1500" value="-2000" step="10">
+      <input type="range" id="zoom-lever" min="-2500" max="1000" value="-1200" step="10">
     </div>
     <span class="zoom-label">ZOOM</span>
   </div>
@@ -243,8 +243,10 @@
   function generateNetwork3D() {
     for (let i = 0; i < totalCurators; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const radius = 800 + (Math.random() * 600); 
-      const y = (Math.random() - 0.5) * 800; 
+      // 파란 영역 안에 알맞게 차도록 반지름 범위 세밀 조정
+      const radius = 600 + (Math.random() * 400); 
+      // 도넛이 너무 뚱뚱해지지 않게 Y축(두께) 압축
+      const y = (Math.random() - 0.5) * 400; 
 
       const x = Math.cos(angle) * radius;
       const z = Math.sin(angle) * radius;
@@ -316,7 +318,8 @@
 
   let isDragging = false;
   let previousX = 0, previousY = 0;
-  let rotationX = 15, rotationY = -20;
+  // 도넛이 예쁘게 보이도록 초기 각도 설정
+  let rotationX = 20, rotationY = -30;
   
   const zoomLever = document.getElementById('zoom-lever');
 
