@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EXPANDED Curation Network</title>
+<style>
+  /* 사이버펑크/네온 감성에 어울리는 폰트 임포트 */
+  @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
+
+  :root {
+    --bg-color: #050505;
+    --neon-pink: #FF007F;
+    --neon-pink-dim: rgba(255, 0, 127, 0.3);
+  }
+
+  body {
+    margin: 0;
+    overflow: hidden; /* 방사형 뷰를 위해 스크롤 방지 */
+    background-color: var(--bg-color);
+    color: white;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  header {
+    position: absolute;
+    top: 30px;
+    left: 40px;
+    z-index: 10;
+  }
+
+  h1 {
+    font-family: 'Syncopate', sans-serif;
+    color: var(--neon-pink);
+    font-size: 2.5rem;
+    margin: 0;
+    text-shadow: 0 0 10px var(--neon-pink-dim), 0 0 20px var(--neon-pink-dim);
+    letter-spacing: 2px;
+  }
+
+  #network-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  /* 연결선을 그릴 SVG 배경 */
+  #network-lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none; /* 선은 마우스 이벤트에서 제외 */
+  }
+
+  line {
+    stroke: var(--neon-pink);
+    stroke-width: 1.5;
+    opacity: 0.3;
+    transition: opacity 0.3s;
+  }
+
+  /* 큐레이터 노드 (클릭 가능한 원) */
+  .node {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: var(--bg-color);
+    border: 2px solid var(--neon-pink);
+    border-radius: 50%;
+    transform: translate(-50%, -50%); /* 중심점 정렬 */
+    z-index: 2;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 12px var(--neon-pink-dim);
+  }
+
+  /* 노드 내부의 작은 점 */
+  .node::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background-color: var(--neon-pink);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+  }
+
+  /* 마우스 오버 시 네온 효과 극대화 */
+  .node:hover {
+    transform: translate(-50%, -50%) scale(1.6);
+    background-color: var(--neon-pink);
+    box-shadow: 0 0 25px var(--neon-pink);
+  }
+
+  .node:hover::after {
+    background-color: var(--bg-color);
+  }
+
+  /* 큐레이터 이름 툴팁 */
+  .label {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    font-weight: 700;
+  }
+
+  .node:hover .label {
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+
+  <header>
+    <h1>EXPANDED</h1>
+  </header>
+
+  <div id="network-container">
+    <svg id="network-lines"></svg>
+    </div>
+
+<script>
+  const container = document.getElementById('network-container');
+  const svgLines = document.getElementById('network-lines');
+  const totalCurators = 16;
+  const nodes = [];
+
+  // 화면 내에 노드들을 흩뿌려주는 함수
+  function generateNetwork() {
+    let svgHTML = '';
+
+    // 1. 16개의 노드 좌표 생성 및 HTML 요소 추가
+    for (let i = 0; i < totalCurators; i++) {
+      // 화면 중앙 70% 영역 내에 퍼지도록 퍼센트(%)로 좌표 계산
+      const x = 15 + Math.random() * 70; 
+      const y = 20 + Math.random() * 60;
+      
+      nodes.push({ id: i + 1, x: x, y: y });
+
+      const nodeDiv = document.createElement('div');
+      nodeDiv.classList.add('node');
+      nodeDiv.style.left = `${x}%`;
+      nodeDiv.style.top = `${y}%`;
+
+      const labelDiv = document.createElement('div');
+      labelDiv.classList.add('label');
+      labelDiv.textContent = `Curator ${i + 1}`;
+      nodeDiv.appendChild(labelDiv);
+
+      // 개별 큐레이터 클릭 이벤트
+      nodeDiv.addEventListener('click', () => {
+        alert(`Curator ${i + 1}의 전시 공간으로 이동합니다.`);
+      });
+
+      container.appendChild(nodeDiv);
+    }
+
+    // 2. 노드들을 선으로 연결하여 망(Web) 구성
+    // 각 노드를 다른 2개의 노드와 연결해 복잡한 네트워크 형태를 만듭니다.
+    for (let i = 0; i < totalCurators; i++) {
+      const target1 = (i + 1) % totalCurators;
+      const target2 = (i + 4) % totalCurators; 
+      
+      svgHTML += `<line x1="${nodes[i].x}%" y1="${nodes[i].y}%" x2="${nodes[target1].x}%" y2="${nodes[target1].y}%" />`;
+      svgHTML += `<line x1="${nodes[i].x}%" y1="${nodes[i].y}%" x2="${nodes[target2].x}%" y2="${nodes[target2].y}%" />`;
+    }
+
+    svgLines.innerHTML = svgHTML;
+  }
+
+  // 실행
+  generateNetwork();
+</script>
+
+</body>
+</html>
