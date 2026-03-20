@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EXPANDED 3D Network (Max Zoom Out & Lowered)</title>
+<title>EXPANDED 3D Network</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
 
@@ -20,7 +20,7 @@
     background-color: var(--bg-color);
     color: white;
     font-family: 'Space Grotesk', sans-serif;
-    perspective: 1200px; 
+    perspective: 1200px; /* 원근감 */
   }
 
   header {
@@ -33,6 +33,7 @@
     align-items: center;
   }
 
+  /* 로고 스타일 */
   .logo {
     width: 40px;
     height: 40px;
@@ -62,10 +63,11 @@
     letter-spacing: 2px;
   }
 
+  /* 3D 회전의 중심축 */
   #scene {
     position: absolute;
-    /* [수정됨] 60vh에서 75vh로 변경하여 연결망을 화면 하단으로 훅 내림 */
-    top: 75vh;  
+    /* 연결망 중심을 하단-좌측으로 이동 */
+    top: 60vh;  
     left: 45vw; 
     width: 0;
     height: 0;
@@ -77,6 +79,7 @@
     cursor: grabbing;
   }
 
+  /* 두께를 가지는 3D 선 컨테이너 */
   .line3d {
     position: absolute;
     top: 0;
@@ -87,6 +90,7 @@
     transform-origin: center center;
   }
 
+  /* 십자(+) 형태로 교차하는 면 */
   .line3d .plane {
     position: absolute;
     width: 100%;
@@ -163,6 +167,7 @@
     opacity: 1;
   }
 
+  /* --- 줌 컨트롤 레버 (완전 재작성) --- */
   .zoom-control-container {
     position: fixed;
     right: 40px;
@@ -175,6 +180,7 @@
     z-index: 100;
   }
 
+  /* 슬라이더가 들어갈 영역을 잡아주는 래퍼 */
   .slider-wrapper {
     width: 20px;
     height: 200px;
@@ -183,6 +189,7 @@
     justify-content: center;
   }
 
+  /* 브라우저 충돌을 피하기 위해 단순 rotate만 사용 */
   #zoom-lever {
     -webkit-appearance: none;
     width: 200px; 
@@ -190,7 +197,7 @@
     background: var(--slider-track-color);
     border-radius: 3px;
     outline: none;
-    transform: rotate(-90deg); 
+    transform: rotate(-90deg); /* 왼쪽으로 눕혀서 세로로 만듦 */
     cursor: pointer;
     margin: 0;
   }
@@ -211,7 +218,7 @@
     font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 2px;
-    writing-mode: vertical-rl; 
+    writing-mode: vertical-rl; /* 텍스트만 세로로 정렬 */
     opacity: 0.6;
   }
 
@@ -225,11 +232,11 @@
   </header>
 
   <div id="scene">
-  </div>
+    </div>
 
   <div class="zoom-control-container">
     <div class="slider-wrapper">
-      <input type="range" id="zoom-lever" min="-2000" max="1500" value="-2000" step="10">
+      <input type="range" id="zoom-lever" min="-2000" max="1500" value="-800" step="10">
     </div>
     <span class="zoom-label">ZOOM</span>
   </div>
@@ -333,6 +340,7 @@
   updateTransform();
 
   window.addEventListener('mousedown', (e) => {
+    // UI 요소 클릭 시 회전 방지
     if (e.target.closest('.zoom-control-container') || e.target.closest('.node-wrapper')) return;
 
     isDragging = true;
@@ -360,6 +368,7 @@
     previousY = e.clientY;
   });
 
+  // 슬라이더 이벤트 연결
   zoomLever.addEventListener('input', updateTransform);
 
 </script>
