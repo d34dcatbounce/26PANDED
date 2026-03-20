@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EXPANDED 3D Network (Sharp Lines)</title>
+<title>EXPANDED 3D Network (Mouse Wheel Zoom)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
 
@@ -11,7 +11,6 @@
     --bg-color: #050505;
     --neon-pink: #FF007F;
     --neon-pink-dim: rgba(255, 0, 127, 0.4);
-    --slider-track-color: #333;
   }
 
   body {
@@ -20,7 +19,7 @@
     background-color: var(--bg-color);
     color: white;
     font-family: 'Space Grotesk', sans-serif;
-    perspective: 1200px;
+    perspective: 1200px; 
     /* 소실점 하단 고정 */
     perspective-origin: 50% 55vh; 
   }
@@ -78,12 +77,12 @@
     cursor: grabbing;
   }
 
-  /* --- [수정됨] 선을 얇고 선명하게 변경 --- */
+  /* --- 선을 얇고 선명하게 --- */
   .line3d {
     position: absolute;
     top: 0;
     left: 0;
-    height: 2px; /* 4px에서 2px로 얇게 */
+    height: 2px; 
     transform-style: preserve-3d;
     pointer-events: none;
     transform-origin: center center;
@@ -94,13 +93,12 @@
     width: 100%;
     height: 100%;
     background-color: var(--neon-pink);
-    opacity: 0.8; /* 0.35에서 0.8로 불투명도 증가 (쨍하게) */
-    box-shadow: 0 0 3px var(--neon-pink); /* 넓게 퍼지던 빛을 타이트하게 조임 */
+    opacity: 0.8; 
+    box-shadow: 0 0 3px var(--neon-pink); 
   }
   .line3d .plane.cross {
     transform: rotateX(90deg); 
   }
-  /* --------------------------------------- */
 
   .node-wrapper {
     position: absolute;
@@ -166,58 +164,6 @@
     opacity: 1;
   }
 
-  .zoom-control-container {
-    position: fixed;
-    right: 40px;
-    top: 50vh;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    z-index: 100;
-  }
-
-  .slider-wrapper {
-    width: 20px;
-    height: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  #zoom-lever {
-    -webkit-appearance: none;
-    width: 200px; 
-    height: 6px;
-    background: var(--slider-track-color);
-    border-radius: 3px;
-    outline: none;
-    transform: rotate(-90deg);
-    cursor: pointer;
-    margin: 0;
-  }
-
-  #zoom-lever::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 22px;
-    height: 22px;
-    background: var(--neon-pink);
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 0 15px var(--neon-pink);
-  }
-
-  .zoom-label {
-    font-family: 'Space Grotesk', sans-serif;
-    color: white;
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 2px;
-    writing-mode: vertical-rl;
-    opacity: 0.6;
-  }
-
 </style>
 </head>
 <body>
@@ -228,13 +174,6 @@
   </header>
 
   <div id="scene"></div>
-
-  <div class="zoom-control-container">
-    <div class="slider-wrapper">
-      <input type="range" id="zoom-lever" min="-2500" max="1000" value="-1200" step="10">
-    </div>
-    <span class="zoom-label">ZOOM</span>
-  </div>
 
 <script>
   const scene = document.getElementById('scene');
@@ -315,16 +254,19 @@
 
   generateNetwork3D();
 
+  // --- 마우스 드래그 및 휠 줌 제어 ---
   let isDragging = false;
   let previousX = 0, previousY = 0;
   let rotationX = 20, rotationY = -30;
   
-  const zoomLever = document.getElementById('zoom-lever');
+  // 초기 줌 설정
+  let currentZoom = -1200;
+  const MIN_ZOOM = -2500;
+  const MAX_ZOOM = 1000;
+  const ZOOM_SPEED = 1.5; // 휠 굴릴 때 확대/축소 속도
 
   function updateTransform() {
-    const zoomValue = zoomLever.value;
-
-    scene.style.transform = `translateZ(${zoomValue}px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+    scene.style.transform = `translateZ(${currentZoom}px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
     
     nodes.forEach((p, i) => {
       const wrapperEl = document.getElementById(`node-${i}`);
@@ -334,8 +276,21 @@
 
   updateTransform();
 
+  // 1. 마우스 휠 이벤트 (줌인/줌아웃)
+  window.addEventListener('wheel', (e) => {
+    // e.deltaY가 양수면 아래로 스크롤(줌아웃), 음수면 위로 스크롤(줌인)
+    currentZoom -= e.deltaY * ZOOM_SPEED;
+    
+    // 줌 범위 제한
+    currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, currentZoom));
+    
+    updateTransform();
+  });
+
+  // 2. 마우스 드래그 이벤트 (회전)
   window.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.zoom-control-container') || e.target.closest('.node-wrapper')) return;
+    // 노드 클릭 시 회전 방지
+    if (e.target.closest('.node-wrapper')) return;
 
     isDragging = true;
     previousX = e.clientX;
@@ -361,8 +316,6 @@
     previousX = e.clientX;
     previousY = e.clientY;
   });
-
-  zoomLever.addEventListener('input', updateTransform);
 
 </script>
 </body>
