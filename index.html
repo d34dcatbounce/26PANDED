@@ -3,23 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EXPANDED 3D (Dynamic & Custom Data Diving)</title>
+<title>EXPANDED 3D Network</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
 
   :root {
     --bg-color: #050505;
-    --neon-pink: #FF007F; /* 메인 테마 (네트워크 용) */
+    --neon-pink: #FF007F; 
     --neon-pink-dim: rgba(255, 0, 127, 0.4);
   }
 
   body {
     margin: 0; overflow: hidden; background-color: var(--bg-color); color: white;
     font-family: 'Space Grotesk', sans-serif; perspective: 1200px; perspective-origin: 50% 55vh; 
-    transition: background-color 1s ease;
   }
-
-  body.detail-mode { background-color: #000000; } /* 개인 공간 진입 시 완전 블랙 */
 
   header {
     position: absolute; top: 30px; left: 40px; right: 60px; 
@@ -57,27 +54,26 @@
 
   .line3d {
     position: absolute; top: 0; left: 0; height: 2px; 
-    transform-style: preserve-3d; pointer-events: none; transform-origin: center center; transition: opacity 0.8s ease; 
+    transform-style: preserve-3d; pointer-events: none; transform-origin: center center; 
   }
   .line3d .plane { position: absolute; width: 100%; height: 100%; background-color: var(--neon-pink); opacity: 0.6; }
   .line3d .plane.cross { transform: rotateX(90deg); }
 
   .node-wrapper {
-    position: absolute; top: 0; left: 0; width: 0; height: 0; transform-style: preserve-3d; z-index: 2; transition: opacity 0.8s ease; 
+    position: absolute; top: 0; left: 0; width: 0; height: 0; transform-style: preserve-3d; z-index: 2;
   }
 
-  /* 노드 안티앨리어싱 (고화질) 처리 */
   .node {
     position: absolute; width: 100px; height: 100px; background-color: var(--bg-color);
     border: 8px solid var(--neon-pink); border-radius: 50%; 
-    transform: translate(-50%, -50%) scale(0.26); /* 체감 26px */
+    transform: translate(-50%, -50%) scale(0.26); 
     cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 1.5, 0.5, 1); display: flex; align-items: center; justify-content: center;
   }
   .node::after {
     content: ''; width: 30px; height: 30px; background-color: var(--neon-pink); border-radius: 50%; transition: all 0.3s ease;
   }
   .node-wrapper:hover .node, .node.active-highlight {
-    transform: translate(-50%, -50%) scale(0.52); /* 체감 52px */
+    transform: translate(-50%, -50%) scale(0.52); 
     background-color: var(--neon-pink); border-color: #fff;
     box-shadow: 0 0 100px var(--neon-pink), 0 0 30px white; z-index: 10;
   }
@@ -91,7 +87,6 @@
 
   #curator-list {
     position: fixed; right: 40px; top: 50vh; transform: translateY(-50%); display: flex; flex-direction: column; gap: 12px; z-index: 100; text-align: right;
-    transition: opacity 0.5s ease, transform 0.5s ease;
   }
   .list-item {
     color: rgba(255, 255, 255, 0.4); font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; font-weight: 700; letter-spacing: 1.5px;
@@ -103,53 +98,6 @@
     background-color: var(--neon-pink); transition: width 0.3s ease;
   }
   .list-item:hover::after, .list-item.active::after { width: 10px; }
-
-  /* --- [핵심 수정: 동적 커스터마이징] 클리커 스타일 --- */
-  .clicker-wrapper {
-    position: absolute; top: 0; left: 0; width: 0; height: 0; transform-style: preserve-3d;
-    opacity: 0; /* JS에서 생성 시 opacity 1로 애니메이션 */
-    transition: opacity 1s ease;
-  }
-
-  .clicker {
-    position: absolute; 
-    width: 200px; height: 200px; /* 안티앨리어싱을 위해 아주 크게 */
-    /* 보더 색상, 섀도우 색상은 JS에서 커스텀 데이터로 주입함 (inline style) */
-    border: 4px dashed transparent; 
-    /* 평소엔 0.4배로 축소 (체감 80px 마름모) */
-    transform: translate(-50%, -50%) rotate(45deg) scale(0.4); 
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; background: rgba(255, 255, 255, 0.03); 
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  
-  .clicker:hover {
-    /* 호버 시 0.5배로 확대 (체감 100px), 회전 각도 변경 */
-    transform: translate(-50%, -50%) rotate(135deg) scale(0.5); 
-    border-style: solid; /* 선 스타일 변경 */
-    border-color: #fff !important; /* 호버 시엔 흰색 보더로 고정 */
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  .clicker-label {
-    position: absolute; transform: rotate(-45deg); /* 수평 맞춤 */
-    color: white; font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.8rem; /* 원본이 크므로 폰트도 크게 */
-    font-weight: 700; letter-spacing: 2px; text-shadow: 0 0 10px black;
-    transition: color 0.3s;
-    /* 기본 색상은 JS에서 주입 */
-  }
-  .clicker:hover .clicker-label { color: #fff !important; text-shadow: 0 0 20px #fff; }
-
-  /* RETURN 버튼 (테마 색상에 맞춰 폭발하도록 수정 예정) */
-  #back-btn {
-    position: fixed; bottom: 40px; right: 40px; font-family: 'Syncopate', sans-serif; font-size: 1rem;
-    background: transparent; border: 1px solid #fff; color: #fff; padding: 12px 24px;
-    cursor: pointer; opacity: 0; pointer-events: none; transition: all 0.5s ease; z-index: 200; transform: translateY(20px);
-    letter-spacing: 2px;
-  }
-  #back-btn.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
-  #back-btn:hover { background: #fff; color: #000; box-shadow: 0 0 30px #fff; }
 
 </style>
 </head>
@@ -169,53 +117,18 @@
 
   <div id="scene"></div>
   <div id="curator-list"></div>
-  <button id="back-btn">RETURN</button>
 
 <script>
   const scene = document.getElementById('scene');
   const curatorList = document.getElementById('curator-list');
-  const backBtn = document.getElementById('back-btn');
   const totalCurators = 16;
   const nodes = []; 
-
-  let currentMode = 'network'; 
-
-  // --- [핵심 수정 1] 16명 각각의 커스텀 데이터 (Blueprint) 정의 ---
-  const customColors = [
-    '#00E5FF', // Cyan (A멤버)
-    '#FFEA00', // Yellow (B멤버)
-    '#00FF88', // Green
-    '#CC00FF', // Purple
-    '#FF9100', // Orange
-    '#007FFF', // Azure
-    '#FF00FF', // Magenta
-    '#76FF03'  // Lime
-  ];
-
-  const projectThemes = [
-    ['ANGLE', 'Radius', 'Y-Axis'],
-    ['CUBE', 'GLITCH', 'MATRIX'],
-    ['Camus', 'Exist', 'Absurd'],
-    ['URBAN', 'Walk', 'Memory'],
-    ['CODE', 'GEN', 'A.I.'],
-    ['LIGHT', 'SHADOW', 'PRISM'],
-    ['VOICE', ' 해체', ' 소리'],
-    ['BODY', 'MOTION', 'Flesh']
-  ];
-
-  // 16명의 데이터를 Blueprint 기반으로 자동 생성 (컬러와 테마는 순환)
-  const curatorsData = Array.from({ length: totalCurators }, (_, i) => ({
-    name: `Curator ${i + 1}`,
-    themeColor: customColors[i % customColors.length], // 사람마다 다른 색
-    projects: projectThemes[i % projectThemes.length]  // 사람마다 다른 프로젝트 이름
-  }));
-  // -------------------------------------------------------------
 
   function generateNetwork3D() {
     for (let i = 0; i < totalCurators; i++) {
       const angle = Math.random() * Math.PI * 2;
       const radius = 600 + (Math.random() * 400); 
-      const y = (Math.random() - 0.5) * 800; // 세로 넓게
+      const y = (Math.random() - 0.5) * 800; 
 
       const x = Math.cos(angle) * radius;
       const z = Math.sin(angle) * radius;
@@ -243,7 +156,6 @@
       listItem.textContent = `CURATOR ${i + 1}`;
       
       listItem.addEventListener('mouseenter', () => {
-        if(currentMode !== 'network') return;
         nodeDiv.classList.add('active-highlight');
         wrapperDiv.classList.add('active-wrapper');
       });
@@ -253,13 +165,16 @@
         wrapperDiv.classList.remove('active-wrapper');
       });
 
-      const diveAction = () => { if(currentMode === 'network') diveIntoSpace(i); };
-      wrapperDiv.addEventListener('click', diveAction);
-      listItem.addEventListener('click', diveAction);
+      // [핵심 변경] 클릭 시 다른 HTML 페이지로 링크 이동
+      const targetUrl = `curator_${i + 1}.html`;
+      const goToPage = () => { window.location.href = targetUrl; };
+      
+      wrapperDiv.addEventListener('click', goToPage);
+      listItem.addEventListener('click', goToPage);
+      
       curatorList.appendChild(listItem);
     }
 
-    // 선 생성 (i+1, i+4 원래대로 복구)
     for (let i = 0; i < totalCurators; i++) {
       const target1 = (i + 1) % totalCurators;
       const target2 = (i + 4) % totalCurators; 
@@ -293,15 +208,9 @@
   let previousX = 0, previousY = 0;
   let rotationX = 20, rotationY = -30;
   
-  // 초기 줌 쾌적하게 (-1200)
-  let currentZoom = -1200;
+  let currentZoom = -500;
   const MIN_ZOOM = -3000; const MAX_ZOOM = 1000; const ZOOM_SPEED = 1.5; 
 
-  let isAutoRotating = false;
-  let targetRotX = null, targetRotY = null;
-  let divingTargetId = -1;
-
-  // 빌보딩 처리 (블랙홀 버그 픽스 완료된 로직)
   function updateTransform() {
     scene.style.transform = `translateZ(${currentZoom}px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
     
@@ -311,167 +220,18 @@
           wrapperEl.style.transform = `translate3d(${p.x}px, ${p.y}px, ${p.z}px) rotateY(${-rotationY}deg) rotateX(${-rotationX}deg)`;
       }
     });
-
-    // 소환된 커스텀 클리커들도 빌보딩 처리 (정삼각형 궤도 유지)
-    document.querySelectorAll('.clicker-wrapper').forEach((el) => {
-       const tx = el.dataset.tx, ty = el.dataset.ty, tz = el.dataset.tz;
-       const ox = el.dataset.ox, oy = el.dataset.oy, oz = el.dataset.oz;
-       // 카메라 평면 회전을 먼저 주고, 그 다음에 화면 기준 오프셋(편대 좌표)을 더함
-       el.style.transform = `translate3d(${tx}px, ${ty}px, ${tz}px) rotateY(${-rotationY}deg) rotateX(${-rotationX}deg) translate3d(${ox}px, ${oy}px, ${oz}px)`;
-    });
   }
 
   updateTransform();
 
-  function diveIntoSpace(nodeIndex) {
-    if(currentMode === 'detail') return;
-    currentMode = 'detail';
-    document.body.classList.add('detail-mode'); 
-    
-    const node = nodes[nodeIndex];
-    
-    let targetY = -Math.atan2(node.x, node.z) * (180 / Math.PI);
-    let targetX = Math.atan2(node.y, Math.hypot(node.x, node.z)) * (180 / Math.PI);
-
-    let currentY = rotationY % 360; if (currentY < 0) currentY += 360; 
-    let ty = targetY % 360; if (ty < 0) ty += 360;
-    let diffY = ty - currentY;
-    if (diffY > 180) diffY -= 360; if (diffY < -180) diffY += 360;
-
-    targetRotY = rotationY + diffY;
-    targetRotX = targetX;
-
-    divingTargetId = nodeIndex;
-    isAutoRotating = true;
-    animateRotation();
-
-    document.querySelectorAll('.line3d').forEach(el => el.style.opacity = '0');
-    document.querySelectorAll('.node-wrapper').forEach(el => {
-      if(el.id !== `node-${nodeIndex}`) el.style.opacity = '0.05'; 
-    });
-    curatorList.style.opacity = '0';
-    curatorList.style.transform = 'translateY(-50%) translateX(50px)';
-  }
-
-  function animateRotation() {
-    if (!isAutoRotating) return;
-    rotationX += (targetRotX - rotationX) * 0.08;
-    rotationY += (targetRotY - rotationY) * 0.08;
-    
-    if(currentMode === 'detail') {
-        currentZoom += (300 - currentZoom) * 0.05; // 줌인
-    }
-
-    updateTransform();
-
-    if (Math.abs(targetRotX - rotationX) < 0.1 && Math.abs(targetRotY - rotationY) < 0.1) {
-      isAutoRotating = false;
-      if(currentMode === 'detail') createAndSummonClickers(divingTargetId); // [핵심 수정] 실시간 생성 및 소환
-    } else {
-      requestAnimationFrame(animateRotation);
-    }
-  }
-
-  // --- [핵심 수정 2: 동적 생성 및 커스터마이징 로직] ---
-  function createAndSummonClickers(ownerId) {
-    // 메모리에 미리 만들어둔 거 없음. 이제부터 딱 3개만 조립 시작.
-    const ownerNode = nodes[ownerId];
-    const data = curatorsData[ownerId]; // 클릭한 멤버의 Blueprint 가져오기
-
-    // RETURN 버튼 테마 컬러 맞춤
-    backBtn.style.borderColor = data.themeColor;
-    backBtn.style.color = data.themeColor;
-    backBtn.style.boxShadow = `0 0 20px ${data.themeColor}`;
-    // 호버 스타일은 JS로 바꾸기 번거로우니 대략 딤처리된 핑크 그림자 부여
-    backBtn.onmouseover = () => { backBtn.style.background = data.themeColor; backBtn.style.color = '#000'; backBtn.style.boxShadow = `0 0 40px ${data.themeColor}`; };
-    backBtn.onmouseout = () => { backBtn.style.background = 'transparent'; backBtn.style.color = data.themeColor; backBtn.style.boxShadow = `0 0 20px ${data.themeColor}`; };
-    backBtn.classList.add('show');
-
-    // 3개의 프로젝트 클리커 생성 및 도색(Theming)
-    data.projects.forEach((projectName, index) => {
-      const cWrapper = document.createElement('div');
-      cWrapper.classList.add('clicker-wrapper', 'active-clicker'); // 삭제하기 쉽게 클래스 부여
-      
-      // 나중에 updateTransform에서 참조할 좌표 데이터를 dataset에 저장
-      cWrapper.dataset.tx = ownerNode.x; cWrapper.dataset.ty = ownerNode.y; cWrapper.dataset.tz = ownerNode.z;
-      
-      // 정삼각형 편대 좌표 계산 (카메라 평면 기준 오프셋)
-      const angle = (index * (Math.PI * 2) / 3) - Math.PI / 2; 
-      const spreadDistance = 220; 
-      cWrapper.dataset.ox = Math.cos(angle) * spreadDistance;
-      cWrapper.dataset.oy = Math.sin(angle) * spreadDistance;
-      cWrapper.dataset.oz = 60; // 살짝 앞으로
-
-      const clickerBox = document.createElement('div');
-      clickerBox.classList.add('clicker');
-      // [커스터마이징 핵심] Blueprint 색상을 보더와 섀도우에 주입
-      clickerBox.style.borderColor = data.themeColor;
-      clickerBox.style.boxShadow = `inset 0 0 20px rgba(${hexToRgb(data.themeColor)}, 0.3), 0 0 20px rgba(${hexToRgb(data.themeColor)}, 0.3)`;
-      
-      const clickerLabel = document.createElement('span');
-      clickerLabel.classList.add('clicker-label');
-      clickerLabel.textContent = projectName; // 프로젝트 이름 주입
-      // 글자 색상도 테마 컬러 주입
-      clickerLabel.style.color = data.themeColor;
-
-      clickerBox.appendChild(clickerLabel);
-      cWrapper.appendChild(clickerBox);
-      scene.appendChild(cWrapper);
-      
-      // 생성 직후 투명도를 1로 올려서 스무스하게 등장
-      requestAnimationFrame(() => cWrapper.style.opacity = '1');
-      
-      clickerBox.onclick = () => alert(`${data.name}의 ${projectName} 작품 뷰어 오픈!`);
-    });
-    
-    updateTransform(); // 새로 만든 클리커 배치 확정
-  }
-
-  // HEX 색상을 RGB 숫자로 바꾸는 유틸리티 (box-shadow 알파값 처리용)
-  function hexToRgb(hex) {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `${r}, ${g}, ${b}`;
-  }
-
-  // --- [핵심 수정 3: 동적 삭제 로직] 네트워크로 다시 돌아가기 ---
-  backBtn.addEventListener('click', () => {
-    currentMode = 'network';
-    document.body.classList.remove('detail-mode');
-    
-    // 1. [메모리 최적화] 소환된 3개의 커스텀 클리커들을 메모리에서 완전히 삭제(Destroy)
-    document.querySelectorAll('.active-clicker').forEach(c => c.remove());
-    
-    // 2. 네트워크 복구
-    document.querySelectorAll('.line3d').forEach(el => el.style.opacity = '0.6');
-    document.querySelectorAll('.node-wrapper').forEach(el => el.style.opacity = '1');
-    curatorList.style.opacity = '1';
-    curatorList.style.transform = 'translateY(-50%) translateX(0)';
-    backBtn.classList.remove('show');
-    
-    // 원래 시야(-1200) 복구
-    const zoomOutAnim = setInterval(() => {
-        currentZoom += (-1200 - currentZoom) * 0.08;
-        updateTransform();
-        if(Math.abs(-1200 - currentZoom) < 5) clearInterval(zoomOutAnim);
-    }, 16);
-  });
-
-  // 이벤트 리스너들
   window.addEventListener('wheel', (e) => {
-    if(currentMode === 'detail') return; 
-    isAutoRotating = false; 
     currentZoom -= e.deltaY * ZOOM_SPEED;
     currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, currentZoom));
     updateTransform();
   });
 
   window.addEventListener('mousedown', (e) => {
-    if(currentMode === 'detail') return; 
-    if (e.target.closest('.node-wrapper') || e.target.closest('#curator-list') || e.target.closest('.top-menu') || e.target.closest('.clicker')) return;
-    
-    isAutoRotating = false; 
+    if (e.target.closest('.node-wrapper') || e.target.closest('#curator-list') || e.target.closest('.top-menu')) return;
     isDragging = true;
     previousX = e.clientX; previousY = e.clientY;
   });
