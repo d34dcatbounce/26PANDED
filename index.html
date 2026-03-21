@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+\<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EXPANDED 3D Network (Original Connections & Tall)</title>
+<title>EXPANDED 3D Network (Animated Navigation)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
 
@@ -23,12 +23,20 @@
     perspective-origin: 50% 55vh; 
   }
 
+  /* --- [수정됨] 헤더 레이아웃 조정 (로고 좌측, 메뉴 우측) --- */
   header {
     position: absolute;
     top: 30px;
     left: 40px;
+    right: 60px; /* 우측 여백 확보 */
     z-index: 10;
-    pointer-events: none;
+    pointer-events: none; /* 헤더 빈 공간은 3D 뷰 조작을 방해하지 않게 통과시킴 */
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* 양끝 정렬 */
+  }
+
+  .brand {
     display: flex;
     align-items: center;
   }
@@ -61,6 +69,52 @@
     text-shadow: 0 0 10px var(--neon-pink-dim), 0 0 20px var(--neon-pink-dim);
     letter-spacing: 2px;
   }
+
+  /* --- [새로 추가됨] A A A 애니메이션 네비게이션 메뉴 --- */
+  .top-menu {
+    display: flex;
+    gap: 40px; /* A와 A 사이의 간격 */
+    pointer-events: auto; /* 메뉴는 클릭할 수 있게 활성화 */
+  }
+
+  .menu-item {
+    font-family: 'Syncopate', sans-serif;
+    font-size: 1.5rem; /* A 글자 크기 */
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+    display: flex;
+    align-items: flex-end; /* 글자 바닥선 정렬 */
+    transition: color 0.3s, text-shadow 0.3s;
+  }
+
+  .menu-item.active {
+    color: var(--neon-pink);
+    text-shadow: 0 0 10px var(--neon-pink-dim);
+  }
+
+  .menu-item:hover {
+    color: var(--neon-pink);
+    text-shadow: 0 0 15px var(--neon-pink);
+  }
+
+  /* 확장되는 나머지 글자들 */
+  .menu-item .rest {
+    font-size: 1rem; /* 나머지 글자는 A보다 살짝 작게 */
+    max-width: 0; /* 평소에는 너비 0으로 숨김 */
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease; /* 스무스하게 늘어나는 타이밍 함수 */
+    letter-spacing: 2px;
+    padding-bottom: 2px; /* A 글자와 높이 밸런스 맞춤 */
+  }
+
+  .menu-item:hover .rest {
+    max-width: 150px; /* 글자가 다 보일 만큼 충분히 확장 */
+    opacity: 1;
+    margin-left: 2px;
+  }
+  /* ---------------------------------------------------- */
 
   #scene {
     position: absolute;
@@ -109,8 +163,8 @@
 
   .node {
     position: absolute;
-    width: 20px;
-    height: 20px;
+    width: 26px; 
+    height: 26px; 
     background-color: var(--bg-color);
     border: 2px solid var(--neon-pink);
     border-radius: 50%;
@@ -124,8 +178,8 @@
 
   .node::after {
     content: '';
-    width: 6px;
-    height: 6px;
+    width: 8px; 
+    height: 8px; 
     background-color: var(--neon-pink);
     border-radius: 50%;
     transition: all 0.3s ease;
@@ -145,7 +199,7 @@
 
   .label {
     position: absolute;
-    top: 25px;
+    top: 30px; 
     left: 50%;
     transform: translateX(-50%);
     color: white;
@@ -166,7 +220,7 @@
   #curator-list {
     position: fixed;
     right: 40px;
-    top: 50vh;
+    top: 55vh; /* 소실점과 동일하게 살짝 내림 */
     transform: translateY(-50%);
     display: flex;
     flex-direction: column;
@@ -213,8 +267,16 @@
 <body>
 
   <header>
-    <div class="logo"></div>
-    <h1>EXPANDED</h1>
+    <div class="brand">
+      <div class="logo"></div>
+      <h1>EXPANDED</h1>
+    </div>
+    
+    <nav class="top-menu">
+      <a href="#" class="menu-item active">A<span class="rest">CTIVITY</span></a>
+      <a href="#" class="menu-item">A<span class="rest">RCHIVE</span></a>
+      <a href="#" class="menu-item">A<span class="rest">BOUT</span></a>
+    </nav>
   </header>
 
   <div id="scene"></div>
@@ -228,11 +290,9 @@
   const nodes = [];
 
   function generateNetwork3D() {
-    // 1. 노드 생성 (세로 넓게 퍼진 상태 유지)
     for (let i = 0; i < totalCurators; i++) {
       const angle = Math.random() * Math.PI * 2;
       const radius = 600 + (Math.random() * 400); 
-      // 세로축(Y) 범위 800 유지
       const y = (Math.random() - 0.5) * 800; 
 
       const x = Math.cos(angle) * radius;
@@ -278,7 +338,6 @@
       curatorList.appendChild(listItem);
     }
 
-    // 2. 연결 로직 (원래 방식 복구: i+1, i+4)
     for (let i = 0; i < totalCurators; i++) {
       const target1 = (i + 1) % totalCurators;
       const target2 = (i + 4) % totalCurators; 
@@ -318,12 +377,11 @@
 
   generateNetwork3D();
 
-  // --- 카메라 제어 변수 ---
   let isDragging = false;
   let previousX = 0, previousY = 0;
   let rotationX = 20, rotationY = -30;
   
-  let currentZoom = -1200;
+  let currentZoom = -500;
   const MIN_ZOOM = -2500;
   const MAX_ZOOM = 1000;
   const ZOOM_SPEED = 1.5; 
@@ -387,7 +445,7 @@
   });
 
   window.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.node-wrapper') || e.target.closest('#curator-list')) return;
+    if (e.target.closest('.node-wrapper') || e.target.closest('#curator-list') || e.target.closest('.top-menu')) return;
     
     isAutoRotating = false; 
     isDragging = true;
