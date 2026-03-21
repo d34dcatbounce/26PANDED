@@ -5,265 +5,316 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EXPANDED 3D Network</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
 
-  :root {
-    --bg-color: #050505;
-    --neon-pink: #FF007F; 
-    --neon-pink-dim: rgba(255, 0, 127, 0.4);
-  }
-
-  body {
-    margin: 0; overflow: hidden; background-color: var(--bg-color); color: white;
-    font-family: 'Space Grotesk', sans-serif; perspective: 1200px; perspective-origin: 50% 55vh; 
-  }
-
-  header {
-    position: absolute; top: 30px; left: 40px; right: 60px; 
-    z-index: 10; pointer-events: none; display: flex; align-items: center; justify-content: space-between; 
-  }
-  .brand { display: flex; align-items: center; text-decoration: none; pointer-events: auto; }
-  
-  /* [수정 부분] 새로운 아이콘 이미지 스타일 정의 */
-  .header-icon {
-    height: 40px; /* 로고 높이 설정 */
-    width: auto; /* 비율 유지 */
-    display: block; /* 이미지 정렬을 위해 block 설정 */
+  :root {
+    --bg-color: #050505;
+    --neon-pink: #FF007F; 
+    --neon-pink-dim: rgba(255, 0, 127, 0.4);
   }
 
-  .top-menu { display: flex; gap: 40px; pointer-events: auto; }
-  .menu-item {
-    font-family: 'Syncopate', sans-serif; font-size: 1.5rem; color: rgba(255, 255, 255, 0.5);
-    text-decoration: none; display: flex; align-items: flex-end; transition: color 0.3s, text-shadow 0.3s;
-  }
-  .menu-item.active, .menu-item:hover { color: var(--neon-pink); text-shadow: 0 0 15px var(--neon-pink); }
-  .menu-item .rest {
-    font-size: 1rem; max-width: 0; opacity: 0; overflow: hidden; white-space: nowrap;
-    transition: max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease; letter-spacing: 2px; padding-bottom: 2px; 
-  }
-  .menu-item:hover .rest { max-width: 150px; opacity: 1; margin-left: 2px; }
+  body {
+    margin: 0; overflow: hidden; background-color: var(--bg-color); color: white;
+    font-family: 'Space Grotesk', sans-serif; perspective: 1200px; perspective-origin: 50% 55vh; 
+  }
 
-  #scene {
-    position: absolute; top: 55vh; left: 50vw; width: 0; height: 0; transform-style: preserve-3d; cursor: grab;
-  }
-  #scene:active { cursor: grabbing; }
+  header {
+    position: absolute; top: 30px; left: 40px; right: 60px; 
+    z-index: 10; pointer-events: none; display: flex; align-items: center; justify-content: space-between; 
+  }
+  .brand { display: flex; align-items: center; text-decoration: none; pointer-events: auto; }
+  
+  /* --- 순수 CSS로 깎아 만든 EP 모노그램 로고 --- */
+  .ep-icon {
+    position: relative;
+    width: 36px;
+    height: 48px;
+    filter: drop-shadow(0 0 8px var(--neon-pink-dim)); /* 네온 글로우 효과 */
+    transition: filter 0.3s ease;
+  }
+  
+  /* 마우스 호버 시 로고가 더 밝게 빛남 */
+  .brand:hover .ep-icon {
+    filter: drop-shadow(0 0 15px var(--neon-pink));
+  }
 
-  .line3d {
-    position: absolute; top: 0; left: 0; height: 2px; 
-    transform-style: preserve-3d; pointer-events: none; transform-origin: center center; 
-  }
-  .line3d .plane { position: absolute; width: 100%; height: 100%; background-color: var(--neon-pink); opacity: 0.6; }
-  .line3d .plane.cross { transform: rotateX(90deg); }
+  /* 중앙의 수직 기둥 (P의 등뼈) */
+  .ep-icon .stem {
+    position: absolute;
+    top: 0; left: 20px;
+    width: 4px; height: 48px;
+    background-color: var(--neon-pink);
+  }
 
-  .node-wrapper {
-    position: absolute; top: 0; left: 0; width: 0; height: 0; transform-style: preserve-3d; z-index: 2;
-  }
+  /* 중앙의 수평 가로줄 (E의 중간 선) */
+  .ep-icon .crossbar {
+    position: absolute;
+    top: 22px; left: 0;
+    width: 22px; height: 4px;
+    background-color: var(--neon-pink);
+  }
 
-  .node {
-    position: absolute; width: 100px; height: 100px; background-color: var(--bg-color);
-    border: 8px solid var(--neon-pink); border-radius: 50%; 
-    transform: translate(-50%, -50%) scale(0.26); 
-    cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 1.5, 0.5, 1); display: flex; align-items: center; justify-content: center;
-  }
+  /* 왼쪽 거대한 반원 (E의 둥근 등) */
+  .ep-icon::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 24px; height: 48px;
+    border: 4px solid var(--neon-pink);
+    border-right: none;
+    border-radius: 48px 0 0 48px;
+    box-sizing: border-box;
+  }
 
-  .node::before {
-    content: '';
-    position: absolute;
-    width: 250px; 
-    height: 250px;
-    background: radial-gradient(circle, var(--neon-pink) 0%, rgba(255, 0, 127, 0) 65%);
-    border-radius: 50%;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: -1; 
-    pointer-events: none;
-  }
+  /* 오른쪽 작은 반원 (P의 머리 부분) */
+  .ep-icon::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 20px;
+    width: 16px; height: 26px;
+    border: 4px solid var(--neon-pink);
+    border-left: none;
+    border-radius: 0 26px 26px 0;
+    box-sizing: border-box;
+  }
+  /* ------------------------------------------- */
 
-  .node::after {
-    content: ''; width: 30px; height: 30px; background-color: var(--neon-pink); border-radius: 50%; transition: all 0.3s ease;
-  }
+  .top-menu { display: flex; gap: 40px; pointer-events: auto; }
+  .menu-item {
+    font-family: 'Syncopate', sans-serif; font-size: 1.5rem; color: rgba(255, 255, 255, 0.5);
+    text-decoration: none; display: flex; align-items: flex-end; transition: color 0.3s, text-shadow 0.3s;
+  }
+  .menu-item.active, .menu-item:hover { color: var(--neon-pink); text-shadow: 0 0 15px var(--neon-pink); }
+  .menu-item .rest {
+    font-size: 1rem; max-width: 0; opacity: 0; overflow: hidden; white-space: nowrap;
+    transition: max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease; letter-spacing: 2px; padding-bottom: 2px; 
+  }
+  .menu-item:hover .rest { max-width: 150px; opacity: 1; margin-left: 2px; }
 
-  .node-wrapper:hover .node, .node.active-highlight {
-    transform: translate(-50%, -50%) scale(0.52); 
-    background-color: var(--neon-pink); border-color: #fff;
-    box-shadow: 0 0 20px white; 
-    z-index: 10;
-  }
+  #scene {
+    position: absolute; top: 55vh; left: 50vw; width: 0; height: 0; transform-style: preserve-3d; cursor: grab;
+  }
+  #scene:active { cursor: grabbing; }
 
-  .node-wrapper:hover .node::before, .node.active-highlight::before {
-    opacity: 0.6;
-  }
+  .line3d {
+    position: absolute; top: 0; left: 0; height: 2px; 
+    transform-style: preserve-3d; pointer-events: none; transform-origin: center center; 
+  }
+  .line3d .plane { position: absolute; width: 100%; height: 100%; background-color: var(--neon-pink); opacity: 0.6; }
+  .line3d .plane.cross { transform: rotateX(90deg); }
 
-  .node-wrapper:hover .node::after, .node.active-highlight::after { 
-    background-color: var(--bg-color); 
-  }
+  .node-wrapper {
+    position: absolute; top: 0; left: 0; width: 0; height: 0; transform-style: preserve-3d; z-index: 2;
+  }
 
-  .label {
-    position: absolute; top: 30px; left: 50%; transform: translateX(-50%); color: white; font-size: 0.85rem;
-    white-space: nowrap; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,0.9); font-weight: 700;
-  }
-  .node-wrapper:hover .label, .node-wrapper.active-wrapper .label { opacity: 1; color: var(--neon-pink); }
+  .node {
+    position: absolute; width: 100px; height: 100px; background-color: var(--bg-color);
+    border: 8px solid var(--neon-pink); border-radius: 50%; 
+    transform: translate(-50%, -50%) scale(0.26); 
+    cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 1.5, 0.5, 1); display: flex; align-items: center; justify-content: center;
+  }
 
-  #curator-list {
-    position: fixed; right: 40px; top: 50vh; transform: translateY(-50%); display: flex; flex-direction: column; gap: 12px; z-index: 100; text-align: right;
-  }
-  .list-item {
-    color: rgba(255, 255, 255, 0.4); font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; font-weight: 700; letter-spacing: 1.5px;
-    cursor: pointer; transition: all 0.3s ease; padding: 5px 0; position: relative;
-  }
-  .list-item:hover, .list-item.active { color: var(--neon-pink); transform: translateX(-10px); }
-  .list-item::after {
-    content: ''; position: absolute; right: -15px; top: 50%; transform: translateY(-50%); width: 0px; height: 2px;
-    background-color: var(--neon-pink); transition: width 0.3s ease;
-  }
-  .list-item:hover::after, .list-item.active::after { width: 10px; }
+  .node::before {
+    content: '';
+    position: absolute;
+    width: 250px; 
+    height: 250px;
+    background: radial-gradient(circle, var(--neon-pink) 0%, rgba(255, 0, 127, 0) 65%);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1; 
+    pointer-events: none;
+  }
+
+  .node::after {
+    content: ''; width: 30px; height: 30px; background-color: var(--neon-pink); border-radius: 50%; transition: all 0.3s ease;
+  }
+
+  .node-wrapper:hover .node, .node.active-highlight {
+    transform: translate(-50%, -50%) scale(0.52); 
+    background-color: var(--neon-pink); border-color: #fff;
+    box-shadow: 0 0 20px white; 
+    z-index: 10;
+  }
+
+  .node-wrapper:hover .node::before, .node.active-highlight::before {
+    opacity: 0.6;
+  }
+
+  .node-wrapper:hover .node::after, .node.active-highlight::after { 
+    background-color: var(--bg-color); 
+  }
+
+  .label {
+    position: absolute; top: 30px; left: 50%; transform: translateX(-50%); color: white; font-size: 0.85rem;
+    white-space: nowrap; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,0.9); font-weight: 700;
+  }
+  .node-wrapper:hover .label, .node-wrapper.active-wrapper .label { opacity: 1; color: var(--neon-pink); }
+
+  #curator-list {
+    position: fixed; right: 40px; top: 50vh; transform: translateY(-50%); display: flex; flex-direction: column; gap: 12px; z-index: 100; text-align: right;
+  }
+  .list-item {
+    color: rgba(255, 255, 255, 0.4); font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; font-weight: 700; letter-spacing: 1.5px;
+    cursor: pointer; transition: all 0.3s ease; padding: 5px 0; position: relative;
+  }
+  .list-item:hover, .list-item.active { color: var(--neon-pink); transform: translateX(-10px); }
+  .list-item::after {
+    content: ''; position: absolute; right: -15px; top: 50%; transform: translateY(-50%); width: 0px; height: 2px;
+    background-color: var(--neon-pink); transition: width 0.3s ease;
+  }
+  .list-item:hover::after, .list-item.active::after { width: 10px; }
 
 </style>
 </head>
 <body>
 
-  <header>
-        <a href="#" class="brand">
-            <img src="image_0.png" alt="Expanded EP Icon" class="header-icon">
-    </a>
-    <nav class="top-menu">
-      <a href="#" class="menu-item active">A<span class="rest">CTIVITY</span></a>
-      <a href="#" class="menu-item">A<span class="rest">RCHIVE</span></a>
-      <a href="#" class="menu-item">A<span class="rest">BOUT</span></a>
-    </nav>
-  </header>
+  <header>
+    <a href="index.html" class="brand">
+      <div class="ep-icon">
+        <div class="stem"></div>
+        <div class="crossbar"></div>
+      </div>
+    </a>
+    <nav class="top-menu">
+      <a href="#" class="menu-item active">A<span class="rest">CTIVITY</span></a>
+      <a href="#" class="menu-item">A<span class="rest">RCHIVE</span></a>
+      <a href="#" class="menu-item">A<span class="rest">BOUT</span></a>
+    </nav>
+  </header>
 
-  <div id="scene"></div>
-  <div id="curator-list"></div>
+  <div id="scene"></div>
+  <div id="curator-list"></div>
 
 <script>
-  const scene = document.getElementById('scene');
-  const curatorList = document.getElementById('curator-list');
-  const totalCurators = 16;
-  const nodes = []; 
+  const scene = document.getElementById('scene');
+  const curatorList = document.getElementById('curator-list');
+  const totalCurators = 16;
+  const nodes = []; 
 
-  function generateNetwork3D() {
-    for (let i = 0; i < totalCurators; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const radius = 600 + (Math.random() * 400); 
-      const y = (Math.random() - 0.5) * 800; 
+  function generateNetwork3D() {
+    for (let i = 0; i < totalCurators; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 600 + (Math.random() * 400); 
+      const y = (Math.random() - 0.5) * 800; 
 
-      const x = Math.cos(angle) * radius;
-      const z = Math.sin(angle) * radius;
-      
-      nodes.push({ id: i, x: x, y: y, z: z });
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+      
+      nodes.push({ id: i, x: x, y: y, z: z });
 
-      const wrapperDiv = document.createElement('div');
-      wrapperDiv.classList.add('node-wrapper');
-      wrapperDiv.id = `node-${i}`;
-      
-      const nodeDiv = document.createElement('div');
-      nodeDiv.classList.add('node');
+      const wrapperDiv = document.createElement('div');
+      wrapperDiv.classList.add('node-wrapper');
+      wrapperDiv.id = `node-${i}`;
+      
+      const nodeDiv = document.createElement('div');
+      nodeDiv.classList.add('node');
 
-      const labelDiv = document.createElement('div');
-      labelDiv.classList.add('label');
-      labelDiv.textContent = `Curator ${i + 1}`;
-      
-      wrapperDiv.appendChild(nodeDiv);
-      wrapperDiv.appendChild(labelDiv);
-      wrapperDiv.addEventListener('mousedown', e => e.stopPropagation()); 
-      scene.appendChild(wrapperDiv);
+      const labelDiv = document.createElement('div');
+      labelDiv.classList.add('label');
+      labelDiv.textContent = `Curator ${i + 1}`;
+      
+      wrapperDiv.appendChild(nodeDiv);
+      wrapperDiv.appendChild(labelDiv);
+      wrapperDiv.addEventListener('mousedown', e => e.stopPropagation()); 
+      scene.appendChild(wrapperDiv);
 
-      const listItem = document.createElement('div');
-      listItem.className = 'list-item';
-      listItem.textContent = `CURATOR ${i + 1}`;
-      
-      listItem.addEventListener('mouseenter', () => {
-        nodeDiv.classList.add('active-highlight');
-        wrapperDiv.classList.add('active-wrapper');
-      });
+      const listItem = document.createElement('div');
+      listItem.className = 'list-item';
+      listItem.textContent = `CURATOR ${i + 1}`;
+      
+      listItem.addEventListener('mouseenter', () => {
+        nodeDiv.classList.add('active-highlight');
+        wrapperDiv.classList.add('active-wrapper');
+      });
 
-      listItem.addEventListener('mouseleave', () => {
-        nodeDiv.classList.remove('active-highlight');
-        wrapperDiv.classList.remove('active-wrapper');
-      });
+      listItem.addEventListener('mouseleave', () => {
+        nodeDiv.classList.remove('active-highlight');
+        wrapperDiv.classList.remove('active-wrapper');
+      });
 
-      const targetUrl = `curator_${i + 1}.html`;
-      const goToPage = () => { window.location.href = targetUrl; };
-      
-      wrapperDiv.addEventListener('click', goToPage);
-      listItem.addEventListener('click', goToPage);
-      
-      curatorList.appendChild(listItem);
-    }
+      const targetUrl = `curator_${i + 1}.html`;
+      const goToPage = () => { window.location.href = targetUrl; };
+      
+      wrapperDiv.addEventListener('click', goToPage);
+      listItem.addEventListener('click', goToPage);
+      
+      curatorList.appendChild(listItem);
+    }
 
-    for (let i = 0; i < totalCurators; i++) {
-      const target1 = (i + 1) % totalCurators;
-      const target2 = (i + 4) % totalCurators; 
-  0; line3D(nodes[i], nodes[target1]);
-      drawLine3D(nodes[i], nodes[target2]);
-    }
-  }
+    for (let i = 0; i < totalCurators; i++) {
+      const target1 = (i + 1) % totalCurators;
+      const target2 = (i + 4) % totalCurators; 
+      drawLine3D(nodes[i], nodes[target1]);
+      drawLine3D(nodes[i], nodes[target2]);
+    }
+  }
 
-  function drawLine3D(p1, p2) {
-    const dx = p2.x - p1.x; const dy = p2.y - p1.y; const dz = p2.z - p1.z;
-    const length = Math.hypot(dx, dy, dz);
-    const cx = (p1.x + p2.x) / 2; const cy = (p1.y + p2.y) / 2; const cz = (p1.z + p2.z) / 2;
-    const rotY = Math.atan2(-dz, dx) * (180 / Math.PI);
-    const rotZ = Math.atan2(dy, Math.hypot(dx, dz)) * (180 / Math.PI);
+  function drawLine3D(p1, p2) {
+    const dx = p2.x - p1.x; const dy = p2.y - p1.y; const dz = p2.z - p1.z;
+    const length = Math.hypot(dx, dy, dz);
+    const cx = (p1.x + p2.x) / 2; const cy = (p1.y + p2.y) / 2; const cz = (p1.z + p2.z) / 2;
+    const rotY = Math.atan2(-dz, dx) * (180 / Math.PI);
+    const rotZ = Math.atan2(dy, Math.hypot(dx, dz)) * (180 / Math.PI);
 
-    const line = document.createElement('div');
-    line.classList.add('line3d');
-    line.style.width = `${length}px`;
-    line.style.transform = `translate3d(calc(-50% + ${cx}px), calc(-50% + ${cy}px), ${cz}px) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`;
-    
-    const plane1 = document.createElement('div'); plane1.classList.add('plane');
-    const plane2 = document.createElement('div'); plane2.classList.add('plane', 'cross');
+    const line = document.createElement('div');
+    line.classList.add('line3d');
+    line.style.width = `${length}px`;
+    line.style.transform = `translate3d(calc(-50% + ${cx}px), calc(-50% + ${cy}px), ${cz}px) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`;
+    
+    const plane1 = document.createElement('div'); plane1.classList.add('plane');
+    const plane2 = document.createElement('div'); plane2.classList.add('plane', 'cross');
 
-    line.appendChild(plane1); line.appendChild(plane2);
-  0; scene.appendChild(line);
-  }
+    line.appendChild(plane1); line.appendChild(plane2);
+    scene.appendChild(line);
+  }
 
-  generateNetwork3D();
+  generateNetwork3D();
 
-  let isDragging = false;
-  let previousX = 0, previousY = 0;
-  let rotationX = 20, rotationY = -30;
-  
-  let currentZoom = -500;
-  const MIN_ZOOM = -3000; const MAX_ZOOM = 1000; const ZOOM_SPEED = 1.5; 
+  let isDragging = false;
+  let previousX = 0, previousY = 0;
+  let rotationX = 20, rotationY = -30;
+  
+  let currentZoom = -500;
+  const MIN_ZOOM = -3000; const MAX_ZOOM = 1000; const ZOOM_SPEED = 1.5; 
 
-  function updateTransform() {
-  0; scene.style.transform = `translateZ(${currentZoom}px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
-    
-  0; nodes.forEach((p, i) => {
-      const wrapperEl = document.getElementById(`node-${i}`);
-      if(wrapperEl) {
-          wrapperEl.style.transform = `translate3d(${p.x}px, ${p.y}px, ${p.z}px) rotateY(${-rotationY}deg) rotateX(${-rotationX}deg)`;
-      }
-    });
-  }
+  function updateTransform() {
+    scene.style.transform = `translateZ(${currentZoom}px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+    
+    nodes.forEach((p, i) => {
+      const wrapperEl = document.getElementById(`node-${i}`);
+      if(wrapperEl) {
+          wrapperEl.style.transform = `translate3d(${p.x}px, ${p.y}px, ${p.z}px) rotateY(${-rotationY}deg) rotateX(${-rotationX}deg)`;
+      }
+    });
+  }
 
-  updateTransform();
+  updateTransform();
 
-  window.addEventListener('wheel', (e) => {
-    currentZoom -= e.deltaY * ZOOM_SPEED;
-    currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, currentZoom));
-  0; updateTransform();
-  });
+  window.addEventListener('wheel', (e) => {
+    currentZoom -= e.deltaY * ZOOM_SPEED;
+    currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, currentZoom));
+    updateTransform();
+  });
 
-  window.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.node-wrapper') || e.target.closest('#curator-list') || e.target.closest('.top-menu')) return;
-    isDragging = true;
-    previousX = e.clientX; previousY = e.clientY;
-  });
+  window.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.node-wrapper') || e.target.closest('#curator-list') || e.target.closest('.top-menu')) return;
+    isDragging = true;
+    previousX = e.clientX; previousY = e.clientY;
+  });
 
-  window.addEventListener('mouseup', () => isDragging = false);
-  window.addEventListener('mouseleave', () => isDragging = false);
+  window.addEventListener('mouseup', () => isDragging = false);
+  window.addEventListener('mouseleave', () => isDragging = false);
 
-  window.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-    const deltaX = e.clientX - previousX; const deltaY = e.clientY - previousY;
-    rotationY += deltaX * 0.3; rotationX -= deltaY * 0.3;
-    rotationX = Math.max(-80, Math.min(80, rotationX));
-  0; updateTransform();
-    previousX = e.clientX; previousY = e.clientY;
-  });
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const deltaX = e.clientX - previousX; const deltaY = e.clientY - previousY;
+    rotationY += deltaX * 0.3; rotationX -= deltaY * 0.3;
+    rotationX = Math.max(-80, Math.min(80, rotationX));
+    updateTransform();
+    previousX = e.clientX; previousY = e.clientY;
+  });
 
 </script>
 </body>
