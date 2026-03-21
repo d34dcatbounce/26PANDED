@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EXPANDED 3D Network (Detailed Pages)</title>
+<title>EXPANDED 3D Network (Data Diving)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
 
@@ -21,6 +21,13 @@
     font-family: 'Space Grotesk', sans-serif;
     perspective: 1200px; 
     perspective-origin: 50% 55vh; 
+    /* 배경색 전환을 위한 트랜지션 */
+    transition: background-color 1s ease;
+  }
+
+  /* 디테일 뷰(개인 공간)로 들어갔을 때의 배경 */
+  body.detail-mode {
+    background-color: #110008; /* 아주 어두운 자줏빛/핑크빛 배경으로 전환 */
   }
 
   header {
@@ -35,379 +42,149 @@
     justify-content: space-between; 
   }
 
-  .brand {
-    display: flex;
-    align-items: center;
-  }
+  .brand { display: flex; align-items: center; }
 
   .logo {
-    width: 40px;
-    height: 40px;
+    width: 40px; height: 40px;
     background-color: transparent;
     border: 2px solid var(--neon-pink);
-    border-radius: 50%;
-    margin-right: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
+    border-radius: 50%; margin-right: 15px;
+    display: flex; align-items: center; justify-content: center;
   }
   .logo::before {
-    content: 'EP';
-    font-family: 'Syncopate', sans-serif;
-    color: var(--neon-pink);
-    font-size: 1.2rem;
-    font-weight: 700;
+    content: 'EP'; font-family: 'Syncopate', sans-serif;
+    color: var(--neon-pink); font-size: 1.2rem; font-weight: 700;
   }
 
   h1 {
-    font-family: 'Syncopate', sans-serif;
-    color: var(--neon-pink);
-    font-size: 2.5rem;
-    margin: 0;
-    text-shadow: 0 0 10px var(--neon-pink-dim), 0 0 20px var(--neon-pink-dim);
+    font-family: 'Syncopate', sans-serif; color: var(--neon-pink);
+    font-size: 2.5rem; margin: 0; text-shadow: 0 0 10px var(--neon-pink-dim), 0 0 20px var(--neon-pink-dim);
     letter-spacing: 2px;
   }
 
-  .top-menu {
-    display: flex;
-    gap: 40px; 
-    pointer-events: auto; 
-  }
-
+  .top-menu { display: flex; gap: 40px; pointer-events: auto; }
   .menu-item {
-    font-family: 'Syncopate', sans-serif;
-    font-size: 1.5rem; 
-    color: rgba(255, 255, 255, 0.5);
-    text-decoration: none;
-    display: flex;
-    align-items: flex-end; 
-    transition: color 0.3s, text-shadow 0.3s;
+    font-family: 'Syncopate', sans-serif; font-size: 1.5rem; color: rgba(255, 255, 255, 0.5);
+    text-decoration: none; display: flex; align-items: flex-end; transition: color 0.3s, text-shadow 0.3s;
   }
-
-  .menu-item.active {
-    color: var(--neon-pink);
-    text-shadow: 0 0 10px var(--neon-pink-dim);
-  }
-
-  .menu-item:hover {
-    color: var(--neon-pink);
-    text-shadow: 0 0 15px var(--neon-pink);
-  }
-
+  .menu-item.active, .menu-item:hover { color: var(--neon-pink); text-shadow: 0 0 15px var(--neon-pink); }
   .menu-item .rest {
-    font-size: 1rem; 
-    max-width: 0; 
-    opacity: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    transition: max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease; 
-    letter-spacing: 2px;
-    padding-bottom: 2px; 
+    font-size: 1rem; max-width: 0; opacity: 0; overflow: hidden; white-space: nowrap;
+    transition: max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease; letter-spacing: 2px; padding-bottom: 2px; 
   }
-
-  .menu-item:hover .rest {
-    max-width: 150px; 
-    opacity: 1;
-    margin-left: 2px;
-  }
+  .menu-item:hover .rest { max-width: 150px; opacity: 1; margin-left: 2px; }
 
   #scene {
-    position: absolute;
-    top: 55vh;  
-    left: 50vw; 
-    width: 0;
-    height: 0;
-    transform-style: preserve-3d;
-    cursor: grab;
+    position: absolute; top: 55vh; left: 50vw; width: 0; height: 0;
+    transform-style: preserve-3d; cursor: grab;
   }
-
-  #scene:active {
-    cursor: grabbing;
-  }
+  #scene:active { cursor: grabbing; }
 
   .line3d {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 2px; 
-    transform-style: preserve-3d;
-    pointer-events: none;
-    transform-origin: center center;
+    position: absolute; top: 0; left: 0; height: 2px; 
+    transform-style: preserve-3d; pointer-events: none; transform-origin: center center;
+    transition: opacity 0.8s ease; /* 서서히 사라지는 효과 */
   }
-
   .line3d .plane {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-color: var(--neon-pink);
-    opacity: 0.6; 
+    position: absolute; width: 100%; height: 100%; background-color: var(--neon-pink); opacity: 0.6; 
   }
-  .line3d .plane.cross {
-    transform: rotateX(90deg); 
-  }
+  .line3d .plane.cross { transform: rotateX(90deg); }
 
   .node-wrapper {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 0;
-    height: 0;
-    transform-style: preserve-3d;
-    z-index: 2;
+    position: absolute; top: 0; left: 0; width: 0; height: 0; transform-style: preserve-3d; z-index: 2;
+    transition: opacity 0.8s ease; /* 서서히 사라지는 효과 */
   }
-
   .node {
-    position: absolute;
-    width: 26px; 
-    height: 26px; 
-    background-color: var(--bg-color);
-    border: 2px solid var(--neon-pink);
-    border-radius: 50%;
-    transform: translate(-50%, -50%); 
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.25, 1.5, 0.5, 1); 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: absolute; width: 26px; height: 26px; background-color: var(--bg-color);
+    border: 2px solid var(--neon-pink); border-radius: 50%; transform: translate(-50%, -50%); 
+    cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 1.5, 0.5, 1); display: flex; align-items: center; justify-content: center;
   }
-
   .node::after {
-    content: '';
-    width: 8px; 
-    height: 8px; 
-    background-color: var(--neon-pink);
-    border-radius: 50%;
-    transition: all 0.3s ease;
+    content: ''; width: 8px; height: 8px; background-color: var(--neon-pink); border-radius: 50%; transition: all 0.3s ease;
   }
-
   .node-wrapper:hover .node, .node.active-highlight {
-    transform: translate(-50%, -50%) scale(2);
-    background-color: var(--neon-pink);
-    border-color: #fff;
-    box-shadow: 0 0 40px var(--neon-pink), 0 0 15px white; 
-    z-index: 10;
+    transform: translate(-50%, -50%) scale(2); background-color: var(--neon-pink); border-color: #fff;
+    box-shadow: 0 0 40px var(--neon-pink), 0 0 15px white; z-index: 10;
   }
-
-  .node-wrapper:hover .node::after, .node.active-highlight::after {
-    background-color: var(--bg-color);
-  }
+  .node-wrapper:hover .node::after, .node.active-highlight::after { background-color: var(--bg-color); }
 
   .label {
-    position: absolute;
-    top: 30px; 
-    left: 50%;
-    transform: translateX(-50%);
-    color: white;
-    font-size: 0.85rem;
-    white-space: nowrap;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.9);
-    font-weight: 700;
+    position: absolute; top: 30px; left: 50%; transform: translateX(-50%); color: white; font-size: 0.85rem;
+    white-space: nowrap; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,0.9); font-weight: 700;
   }
-
-  .node-wrapper:hover .label, .node-wrapper.active-wrapper .label {
-    opacity: 1;
-    color: var(--neon-pink);
-  }
+  .node-wrapper:hover .label, .node-wrapper.active-wrapper .label { opacity: 1; color: var(--neon-pink); }
 
   #curator-list {
-    position: fixed;
-    right: 40px;
-    top: 50vh;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    z-index: 100;
-    text-align: right;
+    position: fixed; right: 40px; top: 50vh; transform: translateY(-50%); display: flex; flex-direction: column; gap: 12px; z-index: 100; text-align: right;
+    transition: opacity 0.5s ease, transform 0.5s ease;
   }
-
   .list-item {
-    color: rgba(255, 255, 255, 0.4);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    padding: 5px 0;
-    position: relative;
+    color: rgba(255, 255, 255, 0.4); font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; font-weight: 700; letter-spacing: 1.5px;
+    cursor: pointer; transition: all 0.3s ease; padding: 5px 0; position: relative;
   }
-
-  .list-item:hover, .list-item.active {
-    color: var(--neon-pink);
-    transform: translateX(-10px);
-  }
-
+  .list-item:hover, .list-item.active { color: var(--neon-pink); transform: translateX(-10px); }
   .list-item::after {
-    content: '';
-    position: absolute;
-    right: -15px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 0px;
-    height: 2px;
-    background-color: var(--neon-pink);
-    transition: width 0.3s ease;
+    content: ''; position: absolute; right: -15px; top: 50%; transform: translateY(-50%); width: 0px; height: 2px;
+    background-color: var(--neon-pink); transition: width 0.3s ease;
+  }
+  .list-item:hover::after, .list-item.active::after { width: 10px; }
+
+  /* --- [새로 추가됨] 개인 클리커 (작품 상징물) 스타일 --- */
+  .clicker-wrapper {
+    position: absolute; top: 0; left: 0; width: 0; height: 0; transform-style: preserve-3d;
+    opacity: 0; /* 평소엔 투명하게 은닉 */
+    pointer-events: none; /* 클릭 방지 */
+    transition: opacity 1s ease, transform 1.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .list-item:hover::after, .list-item.active::after {
-    width: 10px;
-  }
-
-  /* --- [새로 추가됨] 노드 상세 페이지 (모달 오버레이) 스타일 --- */
-  #detail-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none; /* 숨겨져 있을 땐 마우스 통과 */
-    opacity: 0;
-    transition: opacity 0.5s ease;
-  }
-
-  #detail-modal.show {
+  /* 클리커가 화면에 불려나왔을 때 (호출됨) */
+  .clicker-wrapper.summoned {
     opacity: 1;
-    pointer-events: auto;
+    pointer-events: auto; /* 클릭 활성화 */
   }
 
-  /* 배경 블러 효과 */
-  .modal-overlay {
+  /* 클리커 디자인 (마름모 꼴 네온) */
+  .clicker {
     position: absolute;
-    width: 100%;
-    height: 100%;
-    background: rgba(5, 5, 5, 0.85);
-    backdrop-filter: blur(10px);
-  }
-
-  /* 모달 창 본체 */
-  .modal-content {
-    position: relative;
-    width: 80%;
-    max-width: 1100px;
-    height: 75%;
-    background: rgba(10, 10, 10, 0.95);
-    border: 1px solid var(--neon-pink-dim);
-    box-shadow: 0 0 40px rgba(255, 0, 127, 0.2);
-    padding: 50px;
-    display: flex;
-    flex-direction: column;
-    transform: scale(0.95) translateY(20px);
-    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
-  }
-
-  #detail-modal.show .modal-content {
-    transform: scale(1) translateY(0);
-  }
-
-  .close-btn {
-    position: absolute;
-    top: 25px;
-    right: 35px;
-    background: transparent;
-    border: none;
-    color: var(--neon-pink);
-    font-family: 'Syncopate', sans-serif;
-    font-size: 1.2rem;
-    font-weight: bold;
+    width: 60px; height: 60px;
+    border: 2px dashed var(--neon-pink);
+    transform: translate(-50%, -50%) rotate(45deg); /* 마름모 형태 */
+    display: flex; align-items: center; justify-content: center;
     cursor: pointer;
-    transition: text-shadow 0.3s;
+    background: rgba(255, 0, 127, 0.05);
+    transition: all 0.3s ease;
+    box-shadow: inset 0 0 15px rgba(255, 0, 127, 0.2), 0 0 15px rgba(255, 0, 127, 0.2);
+  }
+  
+  .clicker:hover {
+    background: rgba(255, 0, 127, 0.3);
+    box-shadow: inset 0 0 30px var(--neon-pink), 0 0 30px var(--neon-pink);
+    transform: translate(-50%, -50%) rotate(135deg) scale(1.1); /* 호버 시 회전하며 커짐 */
   }
 
-  .close-btn:hover {
-    text-shadow: 0 0 15px var(--neon-pink);
-  }
-
-  .modal-header {
-    border-bottom: 1px solid var(--neon-pink-dim);
-    padding-bottom: 20px;
-    margin-bottom: 40px;
-  }
-
-  .modal-title {
-    font-family: 'Syncopate', sans-serif;
-    color: var(--neon-pink);
-    font-size: 3.5rem;
-    margin: 0 0 10px 0;
-    text-shadow: 0 0 10px var(--neon-pink-dim);
-  }
-
-  .modal-role {
+  .clicker-label {
+    position: absolute;
+    transform: rotate(-45deg); /* 부모가 45도 돌아갔으므로 글자는 역으로 돌려 수평 맞춤 */
     color: white;
-    font-size: 1rem;
-    letter-spacing: 4px;
-    opacity: 0.7;
-    margin: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 1px;
+    text-shadow: 0 0 5px black;
   }
+  /* ------------------------------------------------ */
 
-  .modal-body {
-    display: flex;
-    gap: 50px;
-    height: 100%;
+  /* 뒤로가기 버튼 */
+  #back-btn {
+    position: fixed; bottom: 40px; right: 40px;
+    font-family: 'Syncopate', sans-serif; font-size: 1rem; color: var(--neon-pink);
+    background: transparent; border: 1px solid var(--neon-pink); padding: 10px 20px;
+    cursor: pointer; opacity: 0; pointer-events: none; transition: all 0.5s ease;
+    z-index: 200; transform: translateY(20px);
   }
-
-  /* 이미지나 작품이 들어갈 공간 */
-  .modal-image-area {
-    flex: 1.2;
-    background: repeating-linear-gradient(
-      45deg,
-      rgba(255, 0, 127, 0.05),
-      rgba(255, 0, 127, 0.05) 10px,
-      rgba(0, 0, 0, 0) 10px,
-      rgba(0, 0, 0, 0) 20px
-    );
-    border: 1px dashed var(--neon-pink-dim);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--neon-pink-dim);
-    font-family: 'Syncopate', sans-serif;
-    font-size: 1.5rem;
-    letter-spacing: 2px;
+  #back-btn.show {
+    opacity: 1; pointer-events: auto; transform: translateY(0);
   }
-
-  /* 텍스트 설명 공간 */
-  .modal-text-area {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
-  .modal-desc {
-    font-size: 1.1rem;
-    line-height: 1.8;
-    color: #cccccc;
-    font-weight: 300;
-  }
-
-  .modal-action-btn {
-    display: inline-block;
-    padding: 15px 30px;
-    background: transparent;
-    border: 1px solid var(--neon-pink);
-    color: var(--neon-pink);
-    text-decoration: none;
-    font-family: 'Syncopate', sans-serif;
-    text-align: center;
-    letter-spacing: 2px;
-    transition: all 0.3s;
-    width: fit-content;
-    margin-top: 20px;
-  }
-
-  .modal-action-btn:hover {
-    background: var(--neon-pink);
-    color: var(--bg-color);
-    box-shadow: 0 0 20px var(--neon-pink);
+  #back-btn:hover {
+    background: var(--neon-pink); color: var(--bg-color); box-shadow: 0 0 20px var(--neon-pink);
   }
 
 </style>
@@ -427,50 +204,20 @@
   </header>
 
   <div id="scene"></div>
-
   <div id="curator-list"></div>
-
-  <div id="detail-modal">
-    <div class="modal-overlay"></div>
-    <div class="modal-content">
-      <button class="close-btn" id="close-btn">✕ CLOSE</button>
-      <div class="modal-header">
-        <h2 class="modal-title" id="m-title">CURATOR NAME</h2>
-        <p class="modal-role" id="m-role">ROLE / POSITION</p>
-      </div>
-      <div class="modal-body">
-        <div class="modal-image-area">
-          PORTFOLIO / ARTWORK
-        </div>
-        <div class="modal-text-area">
-          <p class="modal-desc" id="m-desc">Description text will load here.</p>
-          <a href="#" class="modal-action-btn">VIEW FULL ARCHIVE</a>
-        </div>
-      </div>
-    </div>
-  </div>
+  
+  <button id="back-btn">RETURN TO NETWORK</button>
 
 <script>
   const scene = document.getElementById('scene');
   const curatorList = document.getElementById('curator-list');
+  const backBtn = document.getElementById('back-btn');
   const totalCurators = 16;
   const nodes = [];
+  const clickers = []; // 모든 클리커를 담아둘 배열
 
-  // --- [새로 추가됨] 각 노드에 들어갈 가상의 데이터 셋 ---
-  const roles = ['CYANOTYPE DIRECTOR', 'WEBZINE EDITOR', 'EXHIBITION CURATOR', 'VISUAL ARTIST'];
-  const descriptions = [
-    "'Steampunk Angel' 프로젝트를 중심으로 한 대체역사적 서사와 기계적 미학을 탐구합니다. 공간과 오브제의 경계를 허무는 작업들을 선보입니다.",
-    "웹진 '씹자, 말풀이'를 통해 언어의 역사적, 사회적 맥락을 해체하고 재구성하는 과정을 아카이빙합니다. 단어 이면의 부조리를 시각화합니다.",
-    "Anguk, Jongno, Sinchon 일대의 도시 공간이 갖는 기억을 3D 디지털 공간으로 치환하여, 관람객에게 새로운 차원의 산책을 제안합니다.",
-    "Albert Camus의 철학적 개념을 인터랙티브 웹 코드로 구현합니다. 사용자의 개입에 따라 무작위로 변형되는 제너러티브 아트를 전시합니다."
-  ];
-
-  const nodeData = Array.from({ length: totalCurators }, (_, i) => ({
-    name: `CURATOR ${i + 1}`,
-    role: roles[i % roles.length],
-    desc: descriptions[i % descriptions.length]
-  }));
-  // --------------------------------------------------------
+  // 현재 뷰 상태 (네트워크 뷰 vs 디테일 뷰)
+  let currentMode = 'network'; 
 
   function generateNetwork3D() {
     for (let i = 0; i < totalCurators; i++) {
@@ -481,7 +228,7 @@
       const x = Math.cos(angle) * radius;
       const z = Math.sin(angle) * radius;
       
-      nodes.push({ id: i + 1, x: x, y: y, z: z });
+      nodes.push({ id: i, x: x, y: y, z: z });
 
       const wrapperDiv = document.createElement('div');
       wrapperDiv.classList.add('node-wrapper');
@@ -497,12 +244,7 @@
       wrapperDiv.appendChild(nodeDiv);
       wrapperDiv.appendChild(labelDiv);
 
-      // 3D 씬의 노드를 직접 클릭해도 회전 및 모달 오픈이 되도록 수정
       wrapperDiv.addEventListener('mousedown', e => e.stopPropagation()); 
-      wrapperDiv.addEventListener('click', () => {
-        centerNode(i);
-      });
-
       scene.appendChild(wrapperDiv);
 
       const listItem = document.createElement('div');
@@ -510,6 +252,7 @@
       listItem.textContent = `CURATOR ${i + 1}`;
       
       listItem.addEventListener('mouseenter', () => {
+        if(currentMode !== 'network') return;
         nodeDiv.classList.add('active-highlight');
         wrapperDiv.classList.add('active-wrapper');
       });
@@ -519,32 +262,50 @@
         wrapperDiv.classList.remove('active-wrapper');
       });
 
-      listItem.addEventListener('click', () => {
-        centerNode(i);
-      });
-
+      // 노드나 리스트 클릭 시 해당 공간으로 다이빙
+      const diveIntoCurator = () => {
+        if(currentMode === 'network') diveIntoSpace(i);
+      };
+      
+      wrapperDiv.addEventListener('click', diveIntoCurator);
+      listItem.addEventListener('click', diveIntoCurator);
       curatorList.appendChild(listItem);
+
+      // --- [새로 추가됨] 큐레이터당 3개의 클리커 사전 생성 및 은닉 ---
+      for(let j=0; j<3; j++) {
+        const cWrapper = document.createElement('div');
+        cWrapper.classList.add('clicker-wrapper');
+        // 추후 찾기 쉽도록 data 속성 부여
+        cWrapper.dataset.ownerId = i;
+        
+        const clickerBox = document.createElement('div');
+        clickerBox.classList.add('clicker');
+        
+        const clickerLabel = document.createElement('span');
+        clickerLabel.classList.add('clicker-label');
+        clickerLabel.textContent = `PJT 0${j+1}`;
+
+        clickerBox.appendChild(clickerLabel);
+        cWrapper.appendChild(clickerBox);
+        scene.appendChild(cWrapper);
+        
+        clickers.push(cWrapper);
+      }
     }
 
+    // 선 그리기
     for (let i = 0; i < totalCurators; i++) {
       const target1 = (i + 1) % totalCurators;
       const target2 = (i + 4) % totalCurators; 
-      
       drawLine3D(nodes[i], nodes[target1]);
       drawLine3D(nodes[i], nodes[target2]);
     }
   }
 
   function drawLine3D(p1, p2) {
-    const dx = p2.x - p1.x;
-    const dy = p2.y - p1.y;
-    const dz = p2.z - p1.z;
+    const dx = p2.x - p1.x; const dy = p2.y - p1.y; const dz = p2.z - p1.z;
     const length = Math.hypot(dx, dy, dz);
-    
-    const cx = (p1.x + p2.x) / 2;
-    const cy = (p1.y + p2.y) / 2;
-    const cz = (p1.z + p2.z) / 2;
-
+    const cx = (p1.x + p2.x) / 2; const cy = (p1.y + p2.y) / 2; const cz = (p1.z + p2.z) / 2;
     const rotY = Math.atan2(-dz, dx) * (180 / Math.PI);
     const rotZ = Math.atan2(dy, Math.hypot(dx, dz)) * (180 / Math.PI);
 
@@ -553,13 +314,10 @@
     line.style.width = `${length}px`;
     line.style.transform = `translate3d(calc(-50% + ${cx}px), calc(-50% + ${cy}px), ${cz}px) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`;
     
-    const plane1 = document.createElement('div');
-    plane1.classList.add('plane');
-    const plane2 = document.createElement('div');
-    plane2.classList.add('plane', 'cross');
+    const plane1 = document.createElement('div'); plane1.classList.add('plane');
+    const plane2 = document.createElement('div'); plane2.classList.add('plane', 'cross');
 
-    line.appendChild(plane1);
-    line.appendChild(plane2);
+    line.appendChild(plane1); line.appendChild(plane2);
     scene.appendChild(line);
   }
 
@@ -570,95 +328,149 @@
   let rotationX = 20, rotationY = -30;
   
   let currentZoom = -500;
-  const MIN_ZOOM = -2500;
-  const MAX_ZOOM = 1000;
-  const ZOOM_SPEED = 1.5; 
+  const MIN_ZOOM = -2500; const MAX_ZOOM = 1000; const ZOOM_SPEED = 1.5; 
 
   let isAutoRotating = false;
-  let targetRotX = null;
-  let targetRotY = null;
-  let pendingModalIndex = -1; // 회전 후 열 모달의 인덱스 기억
+  let targetRotX = null, targetRotY = null;
+  let divingTargetId = -1;
 
   function updateTransform() {
     scene.style.transform = `translateZ(${currentZoom}px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
     
-    nodes.forEach((p, i) => {
-      const wrapperEl = document.getElementById(`node-${i}`);
-      wrapperEl.style.transform = `translate3d(${p.x}px, ${p.y}px, ${p.z}px) rotateY(${-rotationY}deg) rotateX(${-rotationX}deg)`;
+    // 빌보딩 처리 (클리커 포함)
+    document.querySelectorAll('.node-wrapper, .clicker-wrapper').forEach((el) => {
+      // 위치 좌표 추출 (transform 속성에서 translate3d 값 파싱)
+      const transformStr = el.style.transform;
+      if(transformStr && transformStr.includes('translate3d')) {
+         const match = transformStr.match(/translate3d\(([^,]+), ([^,]+), ([^)]+)\)/);
+         if(match) {
+           const x = match[1], y = match[2], z = match[3];
+           el.style.transform = `translate3d(${x}, ${y}, ${z}) rotateY(${-rotationY}deg) rotateX(${-rotationX}deg)`;
+         }
+      }
     });
   }
 
   updateTransform();
 
-  function centerNode(nodeIndex) {
+  // --- [핵심 로직] 특정 큐레이터의 공간으로 다이빙 ---
+  function diveIntoSpace(nodeIndex) {
+    if(currentMode === 'detail') return;
+    currentMode = 'detail';
+    document.body.classList.add('detail-mode'); // 배경 어둡게
+    
     const node = nodes[nodeIndex];
+    
+    // 1. 카메라를 해당 노드 쪽으로 회전시킴
     let targetY = -Math.atan2(node.x, node.z) * (180 / Math.PI);
     let targetX = Math.atan2(node.y, Math.hypot(node.x, node.z)) * (180 / Math.PI);
 
-    let currentY = rotationY % 360;
-    if (currentY < 0) currentY += 360; 
-    let ty = targetY % 360;
-    if (ty < 0) ty += 360;
-
+    let currentY = rotationY % 360; if (currentY < 0) currentY += 360; 
+    let ty = targetY % 360; if (ty < 0) ty += 360;
     let diffY = ty - currentY;
-    if (diffY > 180) diffY -= 360;
-    if (diffY < -180) diffY += 360;
+    if (diffY > 180) diffY -= 360; if (diffY < -180) diffY += 360;
 
     targetRotY = rotationY + diffY;
     targetRotX = targetX;
 
-    pendingModalIndex = nodeIndex; // 회전 끝난 뒤 이 인덱스의 모달을 열어라
+    divingTargetId = nodeIndex;
     isAutoRotating = true;
     animateRotation();
+
+    // 2. 다른 요소들 숨기기 (선, 안 쓰는 노드, 우측 리스트)
+    document.querySelectorAll('.line3d').forEach(el => el.style.opacity = '0');
+    document.querySelectorAll('.node-wrapper').forEach(el => {
+      if(el.id !== `node-${nodeIndex}`) el.style.opacity = '0.1'; // 선택 안된 노드는 희미하게
+    });
+    curatorList.style.opacity = '0';
+    curatorList.style.transform = 'translateY(-50%) translateX(50px)';
+    
+    backBtn.classList.add('show');
   }
 
+  // 공간 다이빙 애니메이션
   function animateRotation() {
     if (!isAutoRotating) return;
-
     rotationX += (targetRotX - rotationX) * 0.08;
     rotationY += (targetRotY - rotationY) * 0.08;
+    
+    // 줌인 효과 (해당 노드로 다가감)
+    if(currentMode === 'detail') {
+        currentZoom += (400 - currentZoom) * 0.05; // 400 근처까지 줌인
+    }
 
     updateTransform();
 
-    // 목표치에 거의 도달하면 애니메이션 멈추고 모달 띄우기
     if (Math.abs(targetRotX - rotationX) < 0.1 && Math.abs(targetRotY - rotationY) < 0.1) {
       isAutoRotating = false;
-      if (pendingModalIndex !== -1) {
-        openModal(pendingModalIndex);
-        pendingModalIndex = -1;
+      if(currentMode === 'detail') {
+          summonClickers(divingTargetId); // 회전/줌이 끝나면 클리커 소환
       }
     } else {
       requestAnimationFrame(animateRotation);
     }
   }
 
-  // --- [새로 추가됨] 모달 열기/닫기 로직 ---
-  const modalEl = document.getElementById('detail-modal');
-  const btnClose = document.getElementById('close-btn');
-
-  function openModal(index) {
-    const data = nodeData[index];
-    document.getElementById('m-title').textContent = data.name;
-    document.getElementById('m-role').textContent = data.role;
-    document.getElementById('m-desc').textContent = data.desc;
+  // --- [핵심 로직] 숨겨둔 클리커들 화면에 뿌리기 ---
+  function summonClickers(ownerId) {
+    const ownerNode = nodes[ownerId];
     
-    modalEl.classList.add('show');
+    // 해당 주인의 클리커만 필터링
+    const myClickers = clickers.filter(c => c.dataset.ownerId == ownerId);
+    
+    myClickers.forEach((clicker, index) => {
+      // 120도 간격으로 중심(ownerNode) 주변에 삼각형 형태로 배치
+      const angle = (index * (Math.PI * 2) / 3);
+      const orbitRadius = 150; // 노드 주변으로 퍼지는 반경
+      
+      // 카메라 평면(빌보드) 상에서의 분산을 위해 X, Y로 퍼뜨림
+      const offsetX = Math.cos(angle) * orbitRadius;
+      const offsetY = Math.sin(angle) * orbitRadius;
+      
+      // 노드 위치 + 오프셋 (카메라가 바라보는 평면에 맞춰 전개)
+      // 정확한 3D 구면 전개는 복잡하므로, 일단 해당 노드의 3D 좌표 기준 약간 앞으로(Z) 당겨서 배치
+      const finalX = ownerNode.x + offsetX;
+      const finalY = ownerNode.y + offsetY;
+      const finalZ = ownerNode.z + 50; // 중심 노드보다 약간 카메라 쪽으로 띄움
+
+      // 위치 세팅 및 등장 클래스 추가
+      clicker.style.transform = `translate3d(${finalX}px, ${finalY}px, ${finalZ}px) rotateY(${-rotationY}deg) rotateX(${-rotationX}deg)`;
+      clicker.classList.add('summoned');
+      
+      // 클리커 클릭 이벤트 (원하시는 추가 작동-예: 이미지 뷰어 등-을 여기에 연결)
+      clicker.onclick = () => alert(`PJT 0${index+1} 작품이 열립니다!`);
+    });
   }
 
-  btnClose.addEventListener('click', () => {
-    modalEl.classList.remove('show');
+  // --- 네트워크로 다시 돌아가기 ---
+  backBtn.addEventListener('click', () => {
+    currentMode = 'network';
+    document.body.classList.remove('detail-mode');
+    
+    // 1. 소환된 클리커들 숨기기
+    clickers.forEach(c => c.classList.remove('summoned'));
+    
+    // 2. 네트워크 선과 노드들 복구
+    document.querySelectorAll('.line3d').forEach(el => el.style.opacity = '0.6');
+    document.querySelectorAll('.node-wrapper').forEach(el => el.style.opacity = '1');
+    
+    // 3. 우측 리스트 복구
+    curatorList.style.opacity = '1';
+    curatorList.style.transform = 'translateY(-50%) translateX(0)';
+    
+    backBtn.classList.remove('show');
+    
+    // 약간 줌아웃하며 원래 시야로
+    const zoomOutAnim = setInterval(() => {
+        currentZoom += (-500 - currentZoom) * 0.1;
+        updateTransform();
+        if(Math.abs(-500 - currentZoom) < 5) clearInterval(zoomOutAnim);
+    }, 16);
   });
 
-  // 배경 딤처리 영역 클릭해도 닫히게 처리
-  document.querySelector('.modal-overlay').addEventListener('click', () => {
-    modalEl.classList.remove('show');
-  });
-  // ------------------------------------------
-
+  // 이벤트 리스너들
   window.addEventListener('wheel', (e) => {
-    // 모달이 켜져있을 땐 뒤에 있는 3D가 줌되지 않게 막음
-    if (modalEl.classList.contains('show')) return; 
-
+    if(currentMode === 'detail') return; // 디테일 모드에선 휠 줌 고정
     isAutoRotating = false; 
     currentZoom -= e.deltaY * ZOOM_SPEED;
     currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, currentZoom));
@@ -666,16 +478,12 @@
   });
 
   window.addEventListener('mousedown', (e) => {
-    // 메뉴, 모달 창 등을 클릭할 땐 3D 드래그 방지
-    if (e.target.closest('.node-wrapper') || 
-        e.target.closest('#curator-list') || 
-        e.target.closest('.top-menu') ||
-        e.target.closest('#detail-modal')) return;
+    if(currentMode === 'detail') return; // 디테일 모드에선 드래그 회전 고정
+    if (e.target.closest('.node-wrapper') || e.target.closest('#curator-list') || e.target.closest('.top-menu') || e.target.closest('.clicker')) return;
     
     isAutoRotating = false; 
     isDragging = true;
-    previousX = e.clientX;
-    previousY = e.clientY;
+    previousX = e.clientX; previousY = e.clientY;
   });
 
   window.addEventListener('mouseup', () => isDragging = false);
@@ -683,18 +491,11 @@
 
   window.addEventListener('mousemove', (e) => {
     if (!isDragging) return;
-
-    const deltaX = e.clientX - previousX;
-    const deltaY = e.clientY - previousY;
-
-    rotationY += deltaX * 0.3; 
-    rotationX -= deltaY * 0.3;
+    const deltaX = e.clientX - previousX; const deltaY = e.clientY - previousY;
+    rotationY += deltaX * 0.3; rotationX -= deltaY * 0.3;
     rotationX = Math.max(-80, Math.min(80, rotationX));
-
     updateTransform();
-
-    previousX = e.clientX;
-    previousY = e.clientY;
+    previousX = e.clientX; previousY = e.clientY;
   });
 
 </script>
