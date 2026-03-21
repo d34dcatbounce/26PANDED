@@ -6,7 +6,7 @@
     <title>EXPANDED - CURATOR 1</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght=700&family=Space+Grotesk:wght@400;700&display=swap');
 
         :root {
             --bg-color: #050505;
@@ -70,7 +70,7 @@
         options: {
             width: window.innerWidth,
             height: window.innerHeight,
-            wireframes: false, 
+            wireframes: false, // 도형 색상을 보기 위해 false
             background: 'transparent'
         }
     });
@@ -79,12 +79,19 @@
     const runner = Runner.create();
     Runner.run(runner, engine);
 
-    // 1. 화면 밖으로 나가지 않도록 바닥과 양옆 벽 생성
+    // 1. *** 수정 부분 *** 사진들이 튕겨도 화면 밖으로 안 나가게 화면 전체 경계벽 강화
     const wallOptions = { isStatic: true, render: { visible: false } };
+    const wallThickness = 500; // 벽 두께를 500px로 대폭 늘려 빠른 속도의 객체도 감지하도록 함
+
     Composite.add(engine.world, [
-        Bodies.rectangle(window.innerWidth/2, window.innerHeight + 25, window.innerWidth, 50, wallOptions), // 바닥
-        Bodies.rectangle(-25, window.innerHeight/2, 50, window.innerHeight, wallOptions), // 왼쪽 벽
-        Bodies.rectangle(window.innerWidth + 25, window.innerHeight/2, 50, window.innerHeight, wallOptions) // 오른쪽 벽
+        // 바닥
+        Bodies.rectangle(window.innerWidth/2, window.innerHeight + wallThickness/2, window.innerWidth, wallThickness, wallOptions),
+        // 상단 (위로 튀는 것 방지)
+        Bodies.rectangle(window.innerWidth/2, -wallThickness/2, window.innerWidth, wallThickness, wallOptions),
+        // 왼쪽
+        Bodies.rectangle(-wallThickness/2, window.innerHeight/2, wallThickness, window.innerHeight, wallOptions),
+        // 오른쪽
+        Bodies.rectangle(window.innerWidth + wallThickness/2, window.innerHeight/2, wallThickness, window.innerHeight, wallOptions)
     ]);
 
     // 2. 초기 핫핑크 버튼
@@ -181,13 +188,14 @@
     function dropThreeSigns() {
         for (let i = 0; i < 3; i++) {
             const sign = signs[i];
-            sign.isStatic = false;
-            sign.render.fillStyle = '#444444'; 
-            
-            // 바닥 벽과 충돌하지 않고 뚫고 떨어지도록 충돌 필터 해제
-            sign.collisionFilter = { group: -1, mask: 0 };
-            
-            // 아래쪽으로 힘을 가해 '쓩' 떨어지게 만듦
+            sign.isStatic = false; // 정적 고정 해제
+            sign.render.fillStyle = '#444444'; // 색상 변경
+
+            // *** 수정 부분 ***
+            // 바닥 벽과 충돌하지 않고 뚫고 떨어지도록 충돌 필터 해제 코드를 삭제함.
+            // 기본값으로 돌려 바닥 벽(isStatic: true)과 충돌하게 함.
+
+            // 아래쪽으로 힘을 가해 '쓩' 떨어지게 만듦 (이미 충분히 빠르므로 힘을 유지)
             Body.applyForce(sign, sign.position, { x: 0, y: 0.5 });
             Body.setAngularVelocity(sign, (Math.random() - 0.5) * 0.3);
         }
