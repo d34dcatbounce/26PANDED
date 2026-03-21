@@ -1,9 +1,9 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EXPANDED 3D Network (Animated Navigation)</title>
+<title>EXPANDED 3D Network (Detailed Pages)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
 
@@ -23,17 +23,16 @@
     perspective-origin: 50% 55vh; 
   }
 
-  /* --- [수정됨] 헤더 레이아웃 조정 (로고 좌측, 메뉴 우측) --- */
   header {
     position: absolute;
     top: 30px;
     left: 40px;
-    right: 60px; /* 우측 여백 확보 */
+    right: 60px; 
     z-index: 10;
-    pointer-events: none; /* 헤더 빈 공간은 3D 뷰 조작을 방해하지 않게 통과시킴 */
+    pointer-events: none; 
     display: flex;
     align-items: center;
-    justify-content: space-between; /* 양끝 정렬 */
+    justify-content: space-between; 
   }
 
   .brand {
@@ -70,20 +69,19 @@
     letter-spacing: 2px;
   }
 
-  /* --- [새로 추가됨] A A A 애니메이션 네비게이션 메뉴 --- */
   .top-menu {
     display: flex;
-    gap: 40px; /* A와 A 사이의 간격 */
-    pointer-events: auto; /* 메뉴는 클릭할 수 있게 활성화 */
+    gap: 40px; 
+    pointer-events: auto; 
   }
 
   .menu-item {
     font-family: 'Syncopate', sans-serif;
-    font-size: 1.5rem; /* A 글자 크기 */
+    font-size: 1.5rem; 
     color: rgba(255, 255, 255, 0.5);
     text-decoration: none;
     display: flex;
-    align-items: flex-end; /* 글자 바닥선 정렬 */
+    align-items: flex-end; 
     transition: color 0.3s, text-shadow 0.3s;
   }
 
@@ -97,24 +95,22 @@
     text-shadow: 0 0 15px var(--neon-pink);
   }
 
-  /* 확장되는 나머지 글자들 */
   .menu-item .rest {
-    font-size: 1rem; /* 나머지 글자는 A보다 살짝 작게 */
-    max-width: 0; /* 평소에는 너비 0으로 숨김 */
+    font-size: 1rem; 
+    max-width: 0; 
     opacity: 0;
     overflow: hidden;
     white-space: nowrap;
-    transition: max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease; /* 스무스하게 늘어나는 타이밍 함수 */
+    transition: max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease; 
     letter-spacing: 2px;
-    padding-bottom: 2px; /* A 글자와 높이 밸런스 맞춤 */
+    padding-bottom: 2px; 
   }
 
   .menu-item:hover .rest {
-    max-width: 150px; /* 글자가 다 보일 만큼 충분히 확장 */
+    max-width: 150px; 
     opacity: 1;
     margin-left: 2px;
   }
-  /* ---------------------------------------------------- */
 
   #scene {
     position: absolute;
@@ -220,7 +216,7 @@
   #curator-list {
     position: fixed;
     right: 40px;
-    top: 55vh; /* 소실점과 동일하게 살짝 내림 */
+    top: 50vh;
     transform: translateY(-50%);
     display: flex;
     flex-direction: column;
@@ -262,6 +258,158 @@
     width: 10px;
   }
 
+  /* --- [새로 추가됨] 노드 상세 페이지 (모달 오버레이) 스타일 --- */
+  #detail-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none; /* 숨겨져 있을 땐 마우스 통과 */
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  #detail-modal.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* 배경 블러 효과 */
+  .modal-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(5, 5, 5, 0.85);
+    backdrop-filter: blur(10px);
+  }
+
+  /* 모달 창 본체 */
+  .modal-content {
+    position: relative;
+    width: 80%;
+    max-width: 1100px;
+    height: 75%;
+    background: rgba(10, 10, 10, 0.95);
+    border: 1px solid var(--neon-pink-dim);
+    box-shadow: 0 0 40px rgba(255, 0, 127, 0.2);
+    padding: 50px;
+    display: flex;
+    flex-direction: column;
+    transform: scale(0.95) translateY(20px);
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  #detail-modal.show .modal-content {
+    transform: scale(1) translateY(0);
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 25px;
+    right: 35px;
+    background: transparent;
+    border: none;
+    color: var(--neon-pink);
+    font-family: 'Syncopate', sans-serif;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: text-shadow 0.3s;
+  }
+
+  .close-btn:hover {
+    text-shadow: 0 0 15px var(--neon-pink);
+  }
+
+  .modal-header {
+    border-bottom: 1px solid var(--neon-pink-dim);
+    padding-bottom: 20px;
+    margin-bottom: 40px;
+  }
+
+  .modal-title {
+    font-family: 'Syncopate', sans-serif;
+    color: var(--neon-pink);
+    font-size: 3.5rem;
+    margin: 0 0 10px 0;
+    text-shadow: 0 0 10px var(--neon-pink-dim);
+  }
+
+  .modal-role {
+    color: white;
+    font-size: 1rem;
+    letter-spacing: 4px;
+    opacity: 0.7;
+    margin: 0;
+  }
+
+  .modal-body {
+    display: flex;
+    gap: 50px;
+    height: 100%;
+  }
+
+  /* 이미지나 작품이 들어갈 공간 */
+  .modal-image-area {
+    flex: 1.2;
+    background: repeating-linear-gradient(
+      45deg,
+      rgba(255, 0, 127, 0.05),
+      rgba(255, 0, 127, 0.05) 10px,
+      rgba(0, 0, 0, 0) 10px,
+      rgba(0, 0, 0, 0) 20px
+    );
+    border: 1px dashed var(--neon-pink-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--neon-pink-dim);
+    font-family: 'Syncopate', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+  }
+
+  /* 텍스트 설명 공간 */
+  .modal-text-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .modal-desc {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #cccccc;
+    font-weight: 300;
+  }
+
+  .modal-action-btn {
+    display: inline-block;
+    padding: 15px 30px;
+    background: transparent;
+    border: 1px solid var(--neon-pink);
+    color: var(--neon-pink);
+    text-decoration: none;
+    font-family: 'Syncopate', sans-serif;
+    text-align: center;
+    letter-spacing: 2px;
+    transition: all 0.3s;
+    width: fit-content;
+    margin-top: 20px;
+  }
+
+  .modal-action-btn:hover {
+    background: var(--neon-pink);
+    color: var(--bg-color);
+    box-shadow: 0 0 20px var(--neon-pink);
+  }
+
 </style>
 </head>
 <body>
@@ -271,7 +419,6 @@
       <div class="logo"></div>
       <h1>EXPANDED</h1>
     </div>
-    
     <nav class="top-menu">
       <a href="#" class="menu-item active">A<span class="rest">CTIVITY</span></a>
       <a href="#" class="menu-item">A<span class="rest">RCHIVE</span></a>
@@ -283,11 +430,47 @@
 
   <div id="curator-list"></div>
 
+  <div id="detail-modal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <button class="close-btn" id="close-btn">✕ CLOSE</button>
+      <div class="modal-header">
+        <h2 class="modal-title" id="m-title">CURATOR NAME</h2>
+        <p class="modal-role" id="m-role">ROLE / POSITION</p>
+      </div>
+      <div class="modal-body">
+        <div class="modal-image-area">
+          PORTFOLIO / ARTWORK
+        </div>
+        <div class="modal-text-area">
+          <p class="modal-desc" id="m-desc">Description text will load here.</p>
+          <a href="#" class="modal-action-btn">VIEW FULL ARCHIVE</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <script>
   const scene = document.getElementById('scene');
   const curatorList = document.getElementById('curator-list');
   const totalCurators = 16;
   const nodes = [];
+
+  // --- [새로 추가됨] 각 노드에 들어갈 가상의 데이터 셋 ---
+  const roles = ['CYANOTYPE DIRECTOR', 'WEBZINE EDITOR', 'EXHIBITION CURATOR', 'VISUAL ARTIST'];
+  const descriptions = [
+    "'Steampunk Angel' 프로젝트를 중심으로 한 대체역사적 서사와 기계적 미학을 탐구합니다. 공간과 오브제의 경계를 허무는 작업들을 선보입니다.",
+    "웹진 '씹자, 말풀이'를 통해 언어의 역사적, 사회적 맥락을 해체하고 재구성하는 과정을 아카이빙합니다. 단어 이면의 부조리를 시각화합니다.",
+    "Anguk, Jongno, Sinchon 일대의 도시 공간이 갖는 기억을 3D 디지털 공간으로 치환하여, 관람객에게 새로운 차원의 산책을 제안합니다.",
+    "Albert Camus의 철학적 개념을 인터랙티브 웹 코드로 구현합니다. 사용자의 개입에 따라 무작위로 변형되는 제너러티브 아트를 전시합니다."
+  ];
+
+  const nodeData = Array.from({ length: totalCurators }, (_, i) => ({
+    name: `CURATOR ${i + 1}`,
+    role: roles[i % roles.length],
+    desc: descriptions[i % descriptions.length]
+  }));
+  // --------------------------------------------------------
 
   function generateNetwork3D() {
     for (let i = 0; i < totalCurators; i++) {
@@ -314,7 +497,12 @@
       wrapperDiv.appendChild(nodeDiv);
       wrapperDiv.appendChild(labelDiv);
 
+      // 3D 씬의 노드를 직접 클릭해도 회전 및 모달 오픈이 되도록 수정
       wrapperDiv.addEventListener('mousedown', e => e.stopPropagation()); 
+      wrapperDiv.addEventListener('click', () => {
+        centerNode(i);
+      });
+
       scene.appendChild(wrapperDiv);
 
       const listItem = document.createElement('div');
@@ -389,6 +577,7 @@
   let isAutoRotating = false;
   let targetRotX = null;
   let targetRotY = null;
+  let pendingModalIndex = -1; // 회전 후 열 모달의 인덱스 기억
 
   function updateTransform() {
     scene.style.transform = `translateZ(${currentZoom}px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
@@ -418,6 +607,7 @@
     targetRotY = rotationY + diffY;
     targetRotX = targetX;
 
+    pendingModalIndex = nodeIndex; // 회전 끝난 뒤 이 인덱스의 모달을 열어라
     isAutoRotating = true;
     animateRotation();
   }
@@ -430,14 +620,45 @@
 
     updateTransform();
 
+    // 목표치에 거의 도달하면 애니메이션 멈추고 모달 띄우기
     if (Math.abs(targetRotX - rotationX) < 0.1 && Math.abs(targetRotY - rotationY) < 0.1) {
       isAutoRotating = false;
+      if (pendingModalIndex !== -1) {
+        openModal(pendingModalIndex);
+        pendingModalIndex = -1;
+      }
     } else {
       requestAnimationFrame(animateRotation);
     }
   }
 
+  // --- [새로 추가됨] 모달 열기/닫기 로직 ---
+  const modalEl = document.getElementById('detail-modal');
+  const btnClose = document.getElementById('close-btn');
+
+  function openModal(index) {
+    const data = nodeData[index];
+    document.getElementById('m-title').textContent = data.name;
+    document.getElementById('m-role').textContent = data.role;
+    document.getElementById('m-desc').textContent = data.desc;
+    
+    modalEl.classList.add('show');
+  }
+
+  btnClose.addEventListener('click', () => {
+    modalEl.classList.remove('show');
+  });
+
+  // 배경 딤처리 영역 클릭해도 닫히게 처리
+  document.querySelector('.modal-overlay').addEventListener('click', () => {
+    modalEl.classList.remove('show');
+  });
+  // ------------------------------------------
+
   window.addEventListener('wheel', (e) => {
+    // 모달이 켜져있을 땐 뒤에 있는 3D가 줌되지 않게 막음
+    if (modalEl.classList.contains('show')) return; 
+
     isAutoRotating = false; 
     currentZoom -= e.deltaY * ZOOM_SPEED;
     currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, currentZoom));
@@ -445,7 +666,11 @@
   });
 
   window.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.node-wrapper') || e.target.closest('#curator-list') || e.target.closest('.top-menu')) return;
+    // 메뉴, 모달 창 등을 클릭할 땐 3D 드래그 방지
+    if (e.target.closest('.node-wrapper') || 
+        e.target.closest('#curator-list') || 
+        e.target.closest('.top-menu') ||
+        e.target.closest('#detail-modal')) return;
     
     isAutoRotating = false; 
     isDragging = true;
