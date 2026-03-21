@@ -27,12 +27,17 @@
     width: 40px; height: 40px; background-color: transparent; border: 2px solid var(--neon-pink);
     border-radius: 50%; margin-right: 15px; display: flex; align-items: center; justify-content: center;
   }
-  .logo::before {
-    content: 'EP'; font-family: 'Syncopate', sans-serif; color: var(--neon-pink); font-size: 1.2rem; font-weight: 700;
-  }
-  h1 {
-    font-family: 'Syncopate', sans-serif; color: var(--neon-pink); font-size: 2.5rem; margin: 0;
-    text-shadow: 0 0 10px var(--neon-pink-dim), 0 0 20px var(--neon-pink-dim); letter-spacing: 2px;
+.logo::before {
+    content: 'EP'; 
+    font-family: 'Space Grotesk', sans-serif; /* 기존의 넓은 Syncopate 대신 고딕 계열 적용 */
+    color: var(--neon-pink); 
+    font-size: 1.4rem; 
+    font-weight: 700;
+    
+    /* 세로로 긴 볼드 고딕 효과를 위한 핵심 설정 */
+    display: inline-block; 
+    transform: scaleY(1.6); /* 세로 길이를 1.6배 늘림 */
+    letter-spacing: -1px; /* 자간을 살짝 좁혀 더 단단하고 세련된 느낌 부여 */
   }
 
   .top-menu { display: flex; gap: 40px; pointer-events: auto; }
