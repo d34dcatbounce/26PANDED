@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CURATOR NAME - EXPANDED</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
+
+  :root {
+    --bg-color: #050505;
+    
+    /* [수정하는 부분 1] 이 페이지의 메인 테마 컬러 */
+    --theme-color: #FF007F; /* 기본값: 네온 핑크 */
+    --theme-dim: rgba(255, 0, 127, 0.4); /* 그림자용 투명도 묶음 */
+  }
+
+  body {
+    margin: 0; 
+    background-color: var(--bg-color); 
+    color: white;
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh; 
+    display: flex; 
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* --- 공통 헤더 네비게이션 (메인과 동일) --- */
+  header {
+    position: absolute; top: 30px; left: 40px; right: 60px; 
+    z-index: 10; display: flex; align-items: center; justify-content: space-between; 
+  }
+  .brand { display: flex; align-items: center; text-decoration: none; }
+  .logo {
+    width: 40px; height: 40px; background-color: transparent; border: 2px solid var(--theme-color);
+    border-radius: 50%; margin-right: 15px; display: flex; align-items: center; justify-content: center;
+  }
+  .logo::before {
+    content: 'EP'; font-family: 'Syncopate', sans-serif; color: var(--theme-color); font-size: 1.2rem; font-weight: 700;
+  }
+  h1 {
+    font-family: 'Syncopate', sans-serif; color: var(--theme-color); font-size: 2.5rem; margin: 0;
+    text-shadow: 0 0 10px var(--theme-dim), 0 0 20px var(--theme-dim); letter-spacing: 2px;
+  }
+
+  .top-menu { display: flex; gap: 40px; }
+  .menu-item {
+    font-family: 'Syncopate', sans-serif; font-size: 1.5rem; color: rgba(255, 255, 255, 0.5);
+    text-decoration: none; display: flex; align-items: flex-end; transition: color 0.3s, text-shadow 0.3s;
+  }
+  .menu-item.active, .menu-item:hover { color: var(--theme-color); text-shadow: 0 0 15px var(--theme-color); }
+  .menu-item .rest {
+    font-size: 1rem; max-width: 0; opacity: 0; overflow: hidden; white-space: nowrap;
+    transition: max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease; letter-spacing: 2px; padding-bottom: 2px; 
+  }
+  .menu-item:hover .rest { max-width: 150px; opacity: 1; margin-left: 2px; }
+
+  /* --- 메인 콘텐츠 (큐레이터 정보 및 클리커) --- */
+  .container {
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+    padding: 120px 40px 40px; /* 헤더 공간 확보 */
+    text-align: center;
+  }
+
+  .curator-header { margin-bottom: 80px; }
+  
+  .curator-name {
+    font-family: 'Syncopate', sans-serif; 
+    font-size: 4rem; 
+    color: white; /* 이름은 흰색으로 쨍하게 */
+    margin: 0 0 10px 0; 
+    text-shadow: 0 0 20px var(--theme-dim);
+  }
+  
+  .curator-role {
+    color: var(--theme-color);
+    font-size: 1.2rem; 
+    letter-spacing: 5px; 
+    margin: 0;
+    font-weight: 700;
+  }
+
+  /* 3개의 작품 상징물(클리커) 배열 */
+  .projects-grid {
+    display: flex; 
+    gap: 80px; 
+    justify-content: center; 
+    align-items: center;
+  }
+
+  .project-card {
+    width: 200px; height: 200px; 
+    border: 2px dashed var(--theme-color);
+    transform: rotate(45deg); /* 마름모 형태 */
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255, 255, 255, 0.02); 
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer; text-decoration: none; 
+    box-shadow: inset 0 0 15px var(--theme-dim), 0 0 15px var(--theme-dim);
+  }
+
+  .project-card:hover {
+    background: rgba(255, 255, 255, 0.1); 
+    transform: rotate(135deg) scale(1.1); /* 회전하며 확대 */
+    border-style: solid; 
+    border-color: white;
+    box-shadow: 0 0 30px var(--theme-color), inset 0 0 30px var(--theme-color);
+  }
+
+  .project-title {
+    transform: rotate(-45deg); /* 부모 회전 상쇄 (수평 텍스트) */
+    font-family: 'Space Grotesk', sans-serif; 
+    font-size: 1.5rem; 
+    color: white;
+    font-weight: 700;
+    letter-spacing: 2px; 
+    text-shadow: 0 0 10px black; 
+    transition: color 0.3s;
+  }
+
+  .project-card:hover .project-title { 
+    color: white; 
+    text-shadow: 0 0 20px white;
+    transform: rotate(-135deg); /* 호버 시 회전 상쇄 */
+  }
+
+  /* 뒤로가기 버튼 */
+  .back-btn {
+    margin-top: 100px; 
+    font-family: 'Syncopate', sans-serif; 
+    font-size: 1rem; 
+    color: var(--theme-color);
+    text-decoration: none; 
+    border: 1px solid var(--theme-color); 
+    padding: 15px 30px; 
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+  }
+  
+  .back-btn:hover {
+    background: var(--theme-color); 
+    color: var(--bg-color); 
+    box-shadow: 0 0 20px var(--theme-color);
+  }
+
+</style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="brand">
+      <div class="logo"></div>
+      <h1>EXPANDED</h1>
+    </a>
+    
+    <nav class="top-menu">
+      <a href="#" class="menu-item active">A<span class="rest">CTIVITY</span></a>
+      <a href="#" class="menu-item">A<span class="rest">RCHIVE</span></a>
+      <a href="#" class="menu-item">A<span class="rest">BOUT</span></a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="curator-header">
+      <h2 class="curator-name">CURATOR NAME</h2>
+      <p class="curator-role">ROLE / POSITION</p>
+    </div>
+
+    <div class="projects-grid">
+      <a href="#" class="project-card">
+        <span class="project-title">PJT 01</span>
+      </a>
+      
+      <a href="#" class="project-card">
+        <span class="project-title">PJT 02</span>
+      </a>
+      
+      <a href="#" class="project-card">
+        <span class="project-title">PJT 03</span>
+      </a>
+
+    </div>
+
+    <a href="index.html" class="back-btn">RETURN TO NETWORK</a>
+  </div>
+
+</body>
+</html>
