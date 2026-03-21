@@ -156,10 +156,9 @@
     const photoColors = ['#FF595E', '#FFCA3A', '#8AC926', '#1982C4', '#6A4C93', '#F15BB5', '#00F5D4', '#9B5DE5', '#FEE440', '#00BBF9'];
     
     let mousedownPosition = { x: 0, y: 0 };
-    let mousedownStep = 0; // [핵심 추가] 마우스를 누를 당시의 step 상태를 저장할 변수
+    let step3StartTime = 0; 
 
     Events.on(mouseConstraint, "mousedown", function(event) {
-        mousedownStep = step; // 현재 단계를 기록
         mousedownPosition = { x: event.mouse.position.x, y: event.mouse.position.y };
         const clickedBody = event.source.body;
         
@@ -179,14 +178,38 @@
             scatterPhotos(clickedBody.position.x, clickedBody.position.y);
             Composite.remove(engine.world, clickedBody);
             document.getElementById('guide').innerText = "DRAG TO MOVE / CLICK TO ZOOM";
-            step = 3; // 흩뿌려짐과 동시에 step이 3으로 변함
+            
+            step = 3; 
+            step3StartTime = Date.now(); 
+        }
+        // [수정된 부분] STEP 3: 배경 클릭 시 기존 사진들이 단체로 튀어오름
+        else if (step === 3 && !clickedBody) { 
+            if (Date.now() - step3StartTime < 500) return;
+
+            // 현재 엔진 월드에 존재하는 모든 객체를 가져옴
+            const allBodies = Composite.allBodies(engine.world);
+            
+            // 라벨이 'photo'인 객체들만 필터링
+            const photoBodies = allBodies.filter(body => body.label === 'photo');
+            
+            // 모든 사진 객체에 동시에 위쪽 방향으로 힘을 가함 ("팍!")
+            photoBodies.forEach(photo => {
+                const forceMagnitude = 0.12 * photo.mass; // 힘의 크기 조절
+                Body.applyForce(photo, photo.position, {
+                    x: (Math.random() - 0.5) * 0.05 * photo.mass, // 양옆으로 아주 살짝 랜덤 퍼짐
+                    y: -forceMagnitude // 위쪽 방향 힘
+                });
+                
+                // 회전력도 살짝 랜덤하게 부여
+                Body.setAngularVelocity(photo, (Math.random() - 0.5) * 0.2);
+            });
         }
     });
 
     Events.on(mouseConstraint, "mouseup", function(event) {
-        // [핵심 변경] 마우스를 누를 때 이미 step이 3이었던(사진이 뿌려진 이후의) 클릭에 대해서만 확대를 허용합니다.
-        // 간판을 클릭해서 막 사진이 터지는 중인 경우(mousedownStep이 2)에는 무시합니다.
-        if (step !== 3 || mousedownStep !== 3) return; 
+        if (step !== 3) return; 
+        
+        if (Date.now() - step3StartTime < 500) return;
 
         const mouseX = event.mouse.position.x;
         const mouseY = event.mouse.position.y;
@@ -208,9 +231,7 @@
             const x = (window.innerWidth / 5) * (i + 1);
             const sign = Bodies.rectangle(x, 200, 180, 90, {
                 isStatic: true,
-                frictionAir: 0.015, 
-                density: 0.05,      
-                restitution: 0.4,   
+                frictionAir: 0.015, density: 0.05, restitution: 0.4,   
                 render: { fillStyle: '#ffffff', strokeStyle: '#000', lineWidth: 2 }
             });
             signs.push(sign);
@@ -221,22 +242,15 @@
     function dropThreeSigns() {
         for (let i = 0; i < 3; i++) {
             const sign = signs[i];
-            
             Matter.Body.setStatic(sign, false);
             sign.render.fillStyle = '#444444'; 
-
             sign.collisionFilter = { mask: 0 };
-            
             Body.applyForce(sign, sign.position, { 
                 x: (Math.random() - 0.5) * 0.02 * sign.mass, 
                 y: -0.05 * sign.mass 
             });
-            
             Body.setAngularVelocity(sign, (Math.random() - 0.5) * 0.15);
-
-            setTimeout(() => {
-                Matter.Composite.remove(engine.world, sign);
-            }, 4000);
+            setTimeout(() => { Matter.Composite.remove(engine.world, sign); }, 4000);
         }
     }
 
@@ -248,9 +262,7 @@
                 frictionAir: 0.03, restitution: 0.6, 
                 render: { fillStyle: randomColor } 
             });
-            
             Composite.add(engine.world, photo);
-
             const forceMagnitude = 0.08 * photo.mass;
             Body.applyForce(photo, photo.position, {
                 x: (Math.random() - 0.5) * forceMagnitude,
@@ -262,20 +274,12 @@
     function openZoom(color) {
         const modal = document.getElementById('zoom-modal');
         const zoomedPhoto = document.getElementById('zoomed-photo');
-        zoomedPhoto.style.backgroundColor = color;
-        modal.classList.add('show');
+        zoomedPhoto.style.backgroundColor = color; modal.classList.add('show');
     }
-
-    function closeZoom() {
-        const modal = document.getElementById('zoom-modal');
-        modal.classList.remove('show');
-    }
-
+    function closeZoom() { document.getElementById('zoom-modal').classList.remove('show'); }
     window.addEventListener('resize', () => {
-        render.canvas.width = window.innerWidth;
-        render.canvas.height = window.innerHeight;
+        render.canvas.width = window.innerWidth; render.canvas.height = window.innerHeight;
     });
-
 </script>
 </body>
 </html>
