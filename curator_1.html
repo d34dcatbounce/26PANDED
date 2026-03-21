@@ -138,7 +138,8 @@
         Bodies.rectangle(window.innerWidth + wallThickness/2, window.innerHeight/2, wallThickness, window.innerHeight, wallOptions)
     ]);
 
-    const triggerBtn = Bodies.circle(150, window.innerHeight/2, 60, {
+    // [수정된 부분] 핑크색 동그라미 위치를 화면 너비의 40% 지점(중앙에서 살짝 왼쪽)으로 변경
+    const triggerBtn = Bodies.circle(window.innerWidth * 0.4, window.innerHeight / 2, 60, {
         isStatic: true, label: 'trigger', render: { fillStyle: '#FF007F' }
     });
     Composite.add(engine.world, triggerBtn);
@@ -202,8 +203,8 @@
             const x = (window.innerWidth / 5) * (i + 1);
             const sign = Bodies.rectangle(x, 200, 180, 90, {
                 isStatic: true,
-                frictionAir: 0.08, // [추가됨] 공기 저항을 대폭 늘려서 천천히 떨어지게 만듦
-                restitution: 0.3,  // 바닥에 닿았을 때 살짝 튕기도록 조절
+                frictionAir: 0.08, 
+                restitution: 0.3,  
                 render: { fillStyle: '#ffffff', strokeStyle: '#000', lineWidth: 2 }
             });
             signs.push(sign);
@@ -218,13 +219,11 @@
             Matter.Body.setStatic(sign, false);
             sign.render.fillStyle = '#444444'; 
             
-            // [핵심 변경] y값을 마이너스로 주어 위로 튀어오르게 함
             Body.applyForce(sign, sign.position, { 
-                x: (Math.random() - 0.5) * 0.02 * sign.mass, // 양옆으로 아주 살짝 퍼짐
-                y: -0.06 * sign.mass // 위로 봉! 뜸
+                x: (Math.random() - 0.5) * 0.02 * sign.mass, 
+                y: -0.06 * sign.mass 
             });
             
-            // 빙그르르 부드럽게 도는 속도 조절
             Body.setAngularVelocity(sign, (Math.random() - 0.5) * 0.15);
         }
     }
