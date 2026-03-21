@@ -3,63 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EXPANDED 3D Network (Data Diving)</title>
+<title>EXPANDED 3D (Dynamic & Custom Data Diving)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
 
   :root {
     --bg-color: #050505;
-    --neon-pink: #FF007F;
+    --neon-pink: #FF007F; /* 메인 테마 (네트워크 용) */
     --neon-pink-dim: rgba(255, 0, 127, 0.4);
   }
 
   body {
-    margin: 0;
-    overflow: hidden; 
-    background-color: var(--bg-color);
-    color: white;
-    font-family: 'Space Grotesk', sans-serif;
-    perspective: 1200px; 
-    perspective-origin: 50% 55vh; 
-    /* 배경색 전환을 위한 트랜지션 */
+    margin: 0; overflow: hidden; background-color: var(--bg-color); color: white;
+    font-family: 'Space Grotesk', sans-serif; perspective: 1200px; perspective-origin: 50% 55vh; 
     transition: background-color 1s ease;
   }
 
-  /* 디테일 뷰(개인 공간)로 들어갔을 때의 배경 */
-  body.detail-mode {
-    background-color: #110008; /* 아주 어두운 자줏빛/핑크빛 배경으로 전환 */
-  }
+  body.detail-mode { background-color: #000000; } /* 개인 공간 진입 시 완전 블랙 */
 
   header {
-    position: absolute;
-    top: 30px;
-    left: 40px;
-    right: 60px; 
-    z-index: 10;
-    pointer-events: none; 
-    display: flex;
-    align-items: center;
-    justify-content: space-between; 
+    position: absolute; top: 30px; left: 40px; right: 60px; 
+    z-index: 10; pointer-events: none; display: flex; align-items: center; justify-content: space-between; 
   }
-
   .brand { display: flex; align-items: center; }
-
   .logo {
-    width: 40px; height: 40px;
-    background-color: transparent;
-    border: 2px solid var(--neon-pink);
-    border-radius: 50%; margin-right: 15px;
-    display: flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; background-color: transparent; border: 2px solid var(--neon-pink);
+    border-radius: 50%; margin-right: 15px; display: flex; align-items: center; justify-content: center;
   }
   .logo::before {
-    content: 'EP'; font-family: 'Syncopate', sans-serif;
-    color: var(--neon-pink); font-size: 1.2rem; font-weight: 700;
+    content: 'EP'; font-family: 'Syncopate', sans-serif; color: var(--neon-pink); font-size: 1.2rem; font-weight: 700;
   }
-
   h1 {
-    font-family: 'Syncopate', sans-serif; color: var(--neon-pink);
-    font-size: 2.5rem; margin: 0; text-shadow: 0 0 10px var(--neon-pink-dim), 0 0 20px var(--neon-pink-dim);
-    letter-spacing: 2px;
+    font-family: 'Syncopate', sans-serif; color: var(--neon-pink); font-size: 2.5rem; margin: 0;
+    text-shadow: 0 0 10px var(--neon-pink-dim), 0 0 20px var(--neon-pink-dim); letter-spacing: 2px;
   }
 
   .top-menu { display: flex; gap: 40px; pointer-events: auto; }
@@ -75,36 +51,35 @@
   .menu-item:hover .rest { max-width: 150px; opacity: 1; margin-left: 2px; }
 
   #scene {
-    position: absolute; top: 55vh; left: 50vw; width: 0; height: 0;
-    transform-style: preserve-3d; cursor: grab;
+    position: absolute; top: 55vh; left: 50vw; width: 0; height: 0; transform-style: preserve-3d; cursor: grab;
   }
   #scene:active { cursor: grabbing; }
 
   .line3d {
     position: absolute; top: 0; left: 0; height: 2px; 
-    transform-style: preserve-3d; pointer-events: none; transform-origin: center center;
-    transition: opacity 0.8s ease; /* 서서히 사라지는 효과 */
+    transform-style: preserve-3d; pointer-events: none; transform-origin: center center; transition: opacity 0.8s ease; 
   }
-  .line3d .plane {
-    position: absolute; width: 100%; height: 100%; background-color: var(--neon-pink); opacity: 0.6; 
-  }
+  .line3d .plane { position: absolute; width: 100%; height: 100%; background-color: var(--neon-pink); opacity: 0.6; }
   .line3d .plane.cross { transform: rotateX(90deg); }
 
   .node-wrapper {
-    position: absolute; top: 0; left: 0; width: 0; height: 0; transform-style: preserve-3d; z-index: 2;
-    transition: opacity 0.8s ease; /* 서서히 사라지는 효과 */
+    position: absolute; top: 0; left: 0; width: 0; height: 0; transform-style: preserve-3d; z-index: 2; transition: opacity 0.8s ease; 
   }
+
+  /* 노드 안티앨리어싱 (고화질) 처리 */
   .node {
-    position: absolute; width: 26px; height: 26px; background-color: var(--bg-color);
-    border: 2px solid var(--neon-pink); border-radius: 50%; transform: translate(-50%, -50%); 
+    position: absolute; width: 100px; height: 100px; background-color: var(--bg-color);
+    border: 8px solid var(--neon-pink); border-radius: 50%; 
+    transform: translate(-50%, -50%) scale(0.26); /* 체감 26px */
     cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 1.5, 0.5, 1); display: flex; align-items: center; justify-content: center;
   }
   .node::after {
-    content: ''; width: 8px; height: 8px; background-color: var(--neon-pink); border-radius: 50%; transition: all 0.3s ease;
+    content: ''; width: 30px; height: 30px; background-color: var(--neon-pink); border-radius: 50%; transition: all 0.3s ease;
   }
   .node-wrapper:hover .node, .node.active-highlight {
-    transform: translate(-50%, -50%) scale(2); background-color: var(--neon-pink); border-color: #fff;
-    box-shadow: 0 0 40px var(--neon-pink), 0 0 15px white; z-index: 10;
+    transform: translate(-50%, -50%) scale(0.52); /* 체감 52px */
+    background-color: var(--neon-pink); border-color: #fff;
+    box-shadow: 0 0 100px var(--neon-pink), 0 0 30px white; z-index: 10;
   }
   .node-wrapper:hover .node::after, .node.active-highlight::after { background-color: var(--bg-color); }
 
@@ -129,63 +104,52 @@
   }
   .list-item:hover::after, .list-item.active::after { width: 10px; }
 
-  /* --- [새로 추가됨] 개인 클리커 (작품 상징물) 스타일 --- */
+  /* --- [핵심 수정: 동적 커스터마이징] 클리커 스타일 --- */
   .clicker-wrapper {
     position: absolute; top: 0; left: 0; width: 0; height: 0; transform-style: preserve-3d;
-    opacity: 0; /* 평소엔 투명하게 은닉 */
-    pointer-events: none; /* 클릭 방지 */
-    transition: opacity 1s ease, transform 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0; /* JS에서 생성 시 opacity 1로 애니메이션 */
+    transition: opacity 1s ease;
   }
 
-  /* 클리커가 화면에 불려나왔을 때 (호출됨) */
-  .clicker-wrapper.summoned {
-    opacity: 1;
-    pointer-events: auto; /* 클릭 활성화 */
-  }
-
-  /* 클리커 디자인 (마름모 꼴 네온) */
   .clicker {
-    position: absolute;
-    width: 60px; height: 60px;
-    border: 2px dashed var(--neon-pink);
-    transform: translate(-50%, -50%) rotate(45deg); /* 마름모 형태 */
+    position: absolute; 
+    width: 200px; height: 200px; /* 안티앨리어싱을 위해 아주 크게 */
+    /* 보더 색상, 섀도우 색상은 JS에서 커스텀 데이터로 주입함 (inline style) */
+    border: 4px dashed transparent; 
+    /* 평소엔 0.4배로 축소 (체감 80px 마름모) */
+    transform: translate(-50%, -50%) rotate(45deg) scale(0.4); 
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    background: rgba(255, 0, 127, 0.05);
-    transition: all 0.3s ease;
-    box-shadow: inset 0 0 15px rgba(255, 0, 127, 0.2), 0 0 15px rgba(255, 0, 127, 0.2);
+    cursor: pointer; background: rgba(255, 255, 255, 0.03); 
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
   
   .clicker:hover {
-    background: rgba(255, 0, 127, 0.3);
-    box-shadow: inset 0 0 30px var(--neon-pink), 0 0 30px var(--neon-pink);
-    transform: translate(-50%, -50%) rotate(135deg) scale(1.1); /* 호버 시 회전하며 커짐 */
+    /* 호버 시 0.5배로 확대 (체감 100px), 회전 각도 변경 */
+    transform: translate(-50%, -50%) rotate(135deg) scale(0.5); 
+    border-style: solid; /* 선 스타일 변경 */
+    border-color: #fff !important; /* 호버 시엔 흰색 보더로 고정 */
+    background: rgba(255, 255, 255, 0.1);
   }
 
   .clicker-label {
-    position: absolute;
-    transform: rotate(-45deg); /* 부모가 45도 돌아갔으므로 글자는 역으로 돌려 수평 맞춤 */
-    color: white;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.7rem; font-weight: 700; letter-spacing: 1px;
-    text-shadow: 0 0 5px black;
+    position: absolute; transform: rotate(-45deg); /* 수평 맞춤 */
+    color: white; font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.8rem; /* 원본이 크므로 폰트도 크게 */
+    font-weight: 700; letter-spacing: 2px; text-shadow: 0 0 10px black;
+    transition: color 0.3s;
+    /* 기본 색상은 JS에서 주입 */
   }
-  /* ------------------------------------------------ */
+  .clicker:hover .clicker-label { color: #fff !important; text-shadow: 0 0 20px #fff; }
 
-  /* 뒤로가기 버튼 */
+  /* RETURN 버튼 (테마 색상에 맞춰 폭발하도록 수정 예정) */
   #back-btn {
-    position: fixed; bottom: 40px; right: 40px;
-    font-family: 'Syncopate', sans-serif; font-size: 1rem; color: var(--neon-pink);
-    background: transparent; border: 1px solid var(--neon-pink); padding: 10px 20px;
-    cursor: pointer; opacity: 0; pointer-events: none; transition: all 0.5s ease;
-    z-index: 200; transform: translateY(20px);
+    position: fixed; bottom: 40px; right: 40px; font-family: 'Syncopate', sans-serif; font-size: 1rem;
+    background: transparent; border: 1px solid #fff; color: #fff; padding: 12px 24px;
+    cursor: pointer; opacity: 0; pointer-events: none; transition: all 0.5s ease; z-index: 200; transform: translateY(20px);
+    letter-spacing: 2px;
   }
-  #back-btn.show {
-    opacity: 1; pointer-events: auto; transform: translateY(0);
-  }
-  #back-btn:hover {
-    background: var(--neon-pink); color: var(--bg-color); box-shadow: 0 0 20px var(--neon-pink);
-  }
+  #back-btn.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  #back-btn:hover { background: #fff; color: #000; box-shadow: 0 0 30px #fff; }
 
 </style>
 </head>
@@ -205,25 +169,53 @@
 
   <div id="scene"></div>
   <div id="curator-list"></div>
-  
-  <button id="back-btn">RETURN TO NETWORK</button>
+  <button id="back-btn">RETURN</button>
 
 <script>
   const scene = document.getElementById('scene');
   const curatorList = document.getElementById('curator-list');
   const backBtn = document.getElementById('back-btn');
   const totalCurators = 16;
-  const nodes = [];
-  const clickers = []; // 모든 클리커를 담아둘 배열
+  const nodes = []; 
 
-  // 현재 뷰 상태 (네트워크 뷰 vs 디테일 뷰)
   let currentMode = 'network'; 
+
+  // --- [핵심 수정 1] 16명 각각의 커스텀 데이터 (Blueprint) 정의 ---
+  const customColors = [
+    '#00E5FF', // Cyan (A멤버)
+    '#FFEA00', // Yellow (B멤버)
+    '#00FF88', // Green
+    '#CC00FF', // Purple
+    '#FF9100', // Orange
+    '#007FFF', // Azure
+    '#FF00FF', // Magenta
+    '#76FF03'  // Lime
+  ];
+
+  const projectThemes = [
+    ['ANGLE', 'Radius', 'Y-Axis'],
+    ['CUBE', 'GLITCH', 'MATRIX'],
+    ['Camus', 'Exist', 'Absurd'],
+    ['URBAN', 'Walk', 'Memory'],
+    ['CODE', 'GEN', 'A.I.'],
+    ['LIGHT', 'SHADOW', 'PRISM'],
+    ['VOICE', ' 해체', ' 소리'],
+    ['BODY', 'MOTION', 'Flesh']
+  ];
+
+  // 16명의 데이터를 Blueprint 기반으로 자동 생성 (컬러와 테마는 순환)
+  const curatorsData = Array.from({ length: totalCurators }, (_, i) => ({
+    name: `Curator ${i + 1}`,
+    themeColor: customColors[i % customColors.length], // 사람마다 다른 색
+    projects: projectThemes[i % projectThemes.length]  // 사람마다 다른 프로젝트 이름
+  }));
+  // -------------------------------------------------------------
 
   function generateNetwork3D() {
     for (let i = 0; i < totalCurators; i++) {
       const angle = Math.random() * Math.PI * 2;
       const radius = 600 + (Math.random() * 400); 
-      const y = (Math.random() - 0.5) * 800; 
+      const y = (Math.random() - 0.5) * 800; // 세로 넓게
 
       const x = Math.cos(angle) * radius;
       const z = Math.sin(angle) * radius;
@@ -243,7 +235,6 @@
       
       wrapperDiv.appendChild(nodeDiv);
       wrapperDiv.appendChild(labelDiv);
-
       wrapperDiv.addEventListener('mousedown', e => e.stopPropagation()); 
       scene.appendChild(wrapperDiv);
 
@@ -262,38 +253,13 @@
         wrapperDiv.classList.remove('active-wrapper');
       });
 
-      // 노드나 리스트 클릭 시 해당 공간으로 다이빙
-      const diveIntoCurator = () => {
-        if(currentMode === 'network') diveIntoSpace(i);
-      };
-      
-      wrapperDiv.addEventListener('click', diveIntoCurator);
-      listItem.addEventListener('click', diveIntoCurator);
+      const diveAction = () => { if(currentMode === 'network') diveIntoSpace(i); };
+      wrapperDiv.addEventListener('click', diveAction);
+      listItem.addEventListener('click', diveAction);
       curatorList.appendChild(listItem);
-
-      // --- [새로 추가됨] 큐레이터당 3개의 클리커 사전 생성 및 은닉 ---
-      for(let j=0; j<3; j++) {
-        const cWrapper = document.createElement('div');
-        cWrapper.classList.add('clicker-wrapper');
-        // 추후 찾기 쉽도록 data 속성 부여
-        cWrapper.dataset.ownerId = i;
-        
-        const clickerBox = document.createElement('div');
-        clickerBox.classList.add('clicker');
-        
-        const clickerLabel = document.createElement('span');
-        clickerLabel.classList.add('clicker-label');
-        clickerLabel.textContent = `PJT 0${j+1}`;
-
-        clickerBox.appendChild(clickerLabel);
-        cWrapper.appendChild(clickerBox);
-        scene.appendChild(cWrapper);
-        
-        clickers.push(cWrapper);
-      }
     }
 
-    // 선 그리기
+    // 선 생성 (i+1, i+4 원래대로 복구)
     for (let i = 0; i < totalCurators; i++) {
       const target1 = (i + 1) % totalCurators;
       const target2 = (i + 4) % totalCurators; 
@@ -327,41 +293,43 @@
   let previousX = 0, previousY = 0;
   let rotationX = 20, rotationY = -30;
   
-  let currentZoom = -500;
-  const MIN_ZOOM = -2500; const MAX_ZOOM = 1000; const ZOOM_SPEED = 1.5; 
+  // 초기 줌 쾌적하게 (-1200)
+  let currentZoom = -1200;
+  const MIN_ZOOM = -3000; const MAX_ZOOM = 1000; const ZOOM_SPEED = 1.5; 
 
   let isAutoRotating = false;
   let targetRotX = null, targetRotY = null;
   let divingTargetId = -1;
 
+  // 빌보딩 처리 (블랙홀 버그 픽스 완료된 로직)
   function updateTransform() {
     scene.style.transform = `translateZ(${currentZoom}px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
     
-    // 빌보딩 처리 (클리커 포함)
-    document.querySelectorAll('.node-wrapper, .clicker-wrapper').forEach((el) => {
-      // 위치 좌표 추출 (transform 속성에서 translate3d 값 파싱)
-      const transformStr = el.style.transform;
-      if(transformStr && transformStr.includes('translate3d')) {
-         const match = transformStr.match(/translate3d\(([^,]+), ([^,]+), ([^)]+)\)/);
-         if(match) {
-           const x = match[1], y = match[2], z = match[3];
-           el.style.transform = `translate3d(${x}, ${y}, ${z}) rotateY(${-rotationY}deg) rotateX(${-rotationX}deg)`;
-         }
+    nodes.forEach((p, i) => {
+      const wrapperEl = document.getElementById(`node-${i}`);
+      if(wrapperEl) {
+          wrapperEl.style.transform = `translate3d(${p.x}px, ${p.y}px, ${p.z}px) rotateY(${-rotationY}deg) rotateX(${-rotationX}deg)`;
       }
+    });
+
+    // 소환된 커스텀 클리커들도 빌보딩 처리 (정삼각형 궤도 유지)
+    document.querySelectorAll('.clicker-wrapper').forEach((el) => {
+       const tx = el.dataset.tx, ty = el.dataset.ty, tz = el.dataset.tz;
+       const ox = el.dataset.ox, oy = el.dataset.oy, oz = el.dataset.oz;
+       // 카메라 평면 회전을 먼저 주고, 그 다음에 화면 기준 오프셋(편대 좌표)을 더함
+       el.style.transform = `translate3d(${tx}px, ${ty}px, ${tz}px) rotateY(${-rotationY}deg) rotateX(${-rotationX}deg) translate3d(${ox}px, ${oy}px, ${oz}px)`;
     });
   }
 
   updateTransform();
 
-  // --- [핵심 로직] 특정 큐레이터의 공간으로 다이빙 ---
   function diveIntoSpace(nodeIndex) {
     if(currentMode === 'detail') return;
     currentMode = 'detail';
-    document.body.classList.add('detail-mode'); // 배경 어둡게
+    document.body.classList.add('detail-mode'); 
     
     const node = nodes[nodeIndex];
     
-    // 1. 카메라를 해당 노드 쪽으로 회전시킴
     let targetY = -Math.atan2(node.x, node.z) * (180 / Math.PI);
     let targetX = Math.atan2(node.y, Math.hypot(node.x, node.z)) * (180 / Math.PI);
 
@@ -377,100 +345,122 @@
     isAutoRotating = true;
     animateRotation();
 
-    // 2. 다른 요소들 숨기기 (선, 안 쓰는 노드, 우측 리스트)
     document.querySelectorAll('.line3d').forEach(el => el.style.opacity = '0');
     document.querySelectorAll('.node-wrapper').forEach(el => {
-      if(el.id !== `node-${nodeIndex}`) el.style.opacity = '0.1'; // 선택 안된 노드는 희미하게
+      if(el.id !== `node-${nodeIndex}`) el.style.opacity = '0.05'; 
     });
     curatorList.style.opacity = '0';
     curatorList.style.transform = 'translateY(-50%) translateX(50px)';
-    
-    backBtn.classList.add('show');
   }
 
-  // 공간 다이빙 애니메이션
   function animateRotation() {
     if (!isAutoRotating) return;
     rotationX += (targetRotX - rotationX) * 0.08;
     rotationY += (targetRotY - rotationY) * 0.08;
     
-    // 줌인 효과 (해당 노드로 다가감)
     if(currentMode === 'detail') {
-        currentZoom += (400 - currentZoom) * 0.05; // 400 근처까지 줌인
+        currentZoom += (300 - currentZoom) * 0.05; // 줌인
     }
 
     updateTransform();
 
     if (Math.abs(targetRotX - rotationX) < 0.1 && Math.abs(targetRotY - rotationY) < 0.1) {
       isAutoRotating = false;
-      if(currentMode === 'detail') {
-          summonClickers(divingTargetId); // 회전/줌이 끝나면 클리커 소환
-      }
+      if(currentMode === 'detail') createAndSummonClickers(divingTargetId); // [핵심 수정] 실시간 생성 및 소환
     } else {
       requestAnimationFrame(animateRotation);
     }
   }
 
-  // --- [핵심 로직] 숨겨둔 클리커들 화면에 뿌리기 ---
-  function summonClickers(ownerId) {
+  // --- [핵심 수정 2: 동적 생성 및 커스터마이징 로직] ---
+  function createAndSummonClickers(ownerId) {
+    // 메모리에 미리 만들어둔 거 없음. 이제부터 딱 3개만 조립 시작.
     const ownerNode = nodes[ownerId];
-    
-    // 해당 주인의 클리커만 필터링
-    const myClickers = clickers.filter(c => c.dataset.ownerId == ownerId);
-    
-    myClickers.forEach((clicker, index) => {
-      // 120도 간격으로 중심(ownerNode) 주변에 삼각형 형태로 배치
-      const angle = (index * (Math.PI * 2) / 3);
-      const orbitRadius = 150; // 노드 주변으로 퍼지는 반경
-      
-      // 카메라 평면(빌보드) 상에서의 분산을 위해 X, Y로 퍼뜨림
-      const offsetX = Math.cos(angle) * orbitRadius;
-      const offsetY = Math.sin(angle) * orbitRadius;
-      
-      // 노드 위치 + 오프셋 (카메라가 바라보는 평면에 맞춰 전개)
-      // 정확한 3D 구면 전개는 복잡하므로, 일단 해당 노드의 3D 좌표 기준 약간 앞으로(Z) 당겨서 배치
-      const finalX = ownerNode.x + offsetX;
-      const finalY = ownerNode.y + offsetY;
-      const finalZ = ownerNode.z + 50; // 중심 노드보다 약간 카메라 쪽으로 띄움
+    const data = curatorsData[ownerId]; // 클릭한 멤버의 Blueprint 가져오기
 
-      // 위치 세팅 및 등장 클래스 추가
-      clicker.style.transform = `translate3d(${finalX}px, ${finalY}px, ${finalZ}px) rotateY(${-rotationY}deg) rotateX(${-rotationX}deg)`;
-      clicker.classList.add('summoned');
+    // RETURN 버튼 테마 컬러 맞춤
+    backBtn.style.borderColor = data.themeColor;
+    backBtn.style.color = data.themeColor;
+    backBtn.style.boxShadow = `0 0 20px ${data.themeColor}`;
+    // 호버 스타일은 JS로 바꾸기 번거로우니 대략 딤처리된 핑크 그림자 부여
+    backBtn.onmouseover = () => { backBtn.style.background = data.themeColor; backBtn.style.color = '#000'; backBtn.style.boxShadow = `0 0 40px ${data.themeColor}`; };
+    backBtn.onmouseout = () => { backBtn.style.background = 'transparent'; backBtn.style.color = data.themeColor; backBtn.style.boxShadow = `0 0 20px ${data.themeColor}`; };
+    backBtn.classList.add('show');
+
+    // 3개의 프로젝트 클리커 생성 및 도색(Theming)
+    data.projects.forEach((projectName, index) => {
+      const cWrapper = document.createElement('div');
+      cWrapper.classList.add('clicker-wrapper', 'active-clicker'); // 삭제하기 쉽게 클래스 부여
       
-      // 클리커 클릭 이벤트 (원하시는 추가 작동-예: 이미지 뷰어 등-을 여기에 연결)
-      clicker.onclick = () => alert(`PJT 0${index+1} 작품이 열립니다!`);
+      // 나중에 updateTransform에서 참조할 좌표 데이터를 dataset에 저장
+      cWrapper.dataset.tx = ownerNode.x; cWrapper.dataset.ty = ownerNode.y; cWrapper.dataset.tz = ownerNode.z;
+      
+      // 정삼각형 편대 좌표 계산 (카메라 평면 기준 오프셋)
+      const angle = (index * (Math.PI * 2) / 3) - Math.PI / 2; 
+      const spreadDistance = 220; 
+      cWrapper.dataset.ox = Math.cos(angle) * spreadDistance;
+      cWrapper.dataset.oy = Math.sin(angle) * spreadDistance;
+      cWrapper.dataset.oz = 60; // 살짝 앞으로
+
+      const clickerBox = document.createElement('div');
+      clickerBox.classList.add('clicker');
+      // [커스터마이징 핵심] Blueprint 색상을 보더와 섀도우에 주입
+      clickerBox.style.borderColor = data.themeColor;
+      clickerBox.style.boxShadow = `inset 0 0 20px rgba(${hexToRgb(data.themeColor)}, 0.3), 0 0 20px rgba(${hexToRgb(data.themeColor)}, 0.3)`;
+      
+      const clickerLabel = document.createElement('span');
+      clickerLabel.classList.add('clicker-label');
+      clickerLabel.textContent = projectName; // 프로젝트 이름 주입
+      // 글자 색상도 테마 컬러 주입
+      clickerLabel.style.color = data.themeColor;
+
+      clickerBox.appendChild(clickerLabel);
+      cWrapper.appendChild(clickerBox);
+      scene.appendChild(cWrapper);
+      
+      // 생성 직후 투명도를 1로 올려서 스무스하게 등장
+      requestAnimationFrame(() => cWrapper.style.opacity = '1');
+      
+      clickerBox.onclick = () => alert(`${data.name}의 ${projectName} 작품 뷰어 오픈!`);
     });
+    
+    updateTransform(); // 새로 만든 클리커 배치 확정
   }
 
-  // --- 네트워크로 다시 돌아가기 ---
+  // HEX 색상을 RGB 숫자로 바꾸는 유틸리티 (box-shadow 알파값 처리용)
+  function hexToRgb(hex) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `${r}, ${g}, ${b}`;
+  }
+
+  // --- [핵심 수정 3: 동적 삭제 로직] 네트워크로 다시 돌아가기 ---
   backBtn.addEventListener('click', () => {
     currentMode = 'network';
     document.body.classList.remove('detail-mode');
     
-    // 1. 소환된 클리커들 숨기기
-    clickers.forEach(c => c.classList.remove('summoned'));
+    // 1. [메모리 최적화] 소환된 3개의 커스텀 클리커들을 메모리에서 완전히 삭제(Destroy)
+    document.querySelectorAll('.active-clicker').forEach(c => c.remove());
     
-    // 2. 네트워크 선과 노드들 복구
+    // 2. 네트워크 복구
     document.querySelectorAll('.line3d').forEach(el => el.style.opacity = '0.6');
     document.querySelectorAll('.node-wrapper').forEach(el => el.style.opacity = '1');
-    
-    // 3. 우측 리스트 복구
     curatorList.style.opacity = '1';
     curatorList.style.transform = 'translateY(-50%) translateX(0)';
-    
     backBtn.classList.remove('show');
     
-    // 약간 줌아웃하며 원래 시야로
+    // 원래 시야(-1200) 복구
     const zoomOutAnim = setInterval(() => {
-        currentZoom += (-500 - currentZoom) * 0.1;
+        currentZoom += (-1200 - currentZoom) * 0.08;
         updateTransform();
-        if(Math.abs(-500 - currentZoom) < 5) clearInterval(zoomOutAnim);
+        if(Math.abs(-1200 - currentZoom) < 5) clearInterval(zoomOutAnim);
     }, 16);
   });
 
   // 이벤트 리스너들
   window.addEventListener('wheel', (e) => {
-    if(currentMode === 'detail') return; // 디테일 모드에선 휠 줌 고정
+    if(currentMode === 'detail') return; 
     isAutoRotating = false; 
     currentZoom -= e.deltaY * ZOOM_SPEED;
     currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, currentZoom));
@@ -478,7 +468,7 @@
   });
 
   window.addEventListener('mousedown', (e) => {
-    if(currentMode === 'detail') return; // 디테일 모드에선 드래그 회전 고정
+    if(currentMode === 'detail') return; 
     if (e.target.closest('.node-wrapper') || e.target.closest('#curator-list') || e.target.closest('.top-menu') || e.target.closest('.clicker')) return;
     
     isAutoRotating = false; 
