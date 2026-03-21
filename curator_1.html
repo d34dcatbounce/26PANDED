@@ -28,7 +28,7 @@
         header {
             position: absolute; top: 30px; left: 40px; right: 60px;
             z-index: 100; display: flex; align-items: center; justify-content: space-between;
-            pointer-events: none; /* 배경 클릭 방해 방지 */
+            pointer-events: none;
         }
         .brand { display: flex; align-items: center; text-decoration: none; pointer-events: auto; }
         .logo {
@@ -128,18 +128,16 @@
     const runner = Runner.create();
     Runner.run(runner, engine);
 
-    // 화면 테두리 벽 설정 (사진이 밖으로 나가지 않도록 두껍게 설정)
     const wallOptions = { isStatic: true, render: { visible: false } };
     const wallThickness = 500; 
 
     Composite.add(engine.world, [
-        Bodies.rectangle(window.innerWidth/2, window.innerHeight + wallThickness/2, window.innerWidth, wallThickness, wallOptions), // 바닥
-        Bodies.rectangle(window.innerWidth/2, -wallThickness/2, window.innerWidth, wallThickness, wallOptions), // 천장
-        Bodies.rectangle(-wallThickness/2, window.innerHeight/2, wallThickness, window.innerHeight, wallOptions), // 좌측
-        Bodies.rectangle(window.innerWidth + wallThickness/2, window.innerHeight/2, wallThickness, window.innerHeight, wallOptions) // 우측
+        Bodies.rectangle(window.innerWidth/2, window.innerHeight + wallThickness/2, window.innerWidth, wallThickness, wallOptions),
+        Bodies.rectangle(window.innerWidth/2, -wallThickness/2, window.innerWidth, wallThickness, wallOptions),
+        Bodies.rectangle(-wallThickness/2, window.innerHeight/2, wallThickness, window.innerHeight, wallOptions),
+        Bodies.rectangle(window.innerWidth + wallThickness/2, window.innerHeight/2, wallThickness, window.innerHeight, wallOptions)
     ]);
 
-    // 초기 핫핑크 클리커
     const triggerBtn = Bodies.circle(150, window.innerHeight/2, 60, {
         isStatic: true, label: 'trigger', render: { fillStyle: '#FF007F' }
     });
@@ -204,6 +202,8 @@
             const x = (window.innerWidth / 5) * (i + 1);
             const sign = Bodies.rectangle(x, 200, 180, 90, {
                 isStatic: true,
+                frictionAir: 0.08, // [추가됨] 공기 저항을 대폭 늘려서 천천히 떨어지게 만듦
+                restitution: 0.3,  // 바닥에 닿았을 때 살짝 튕기도록 조절
                 render: { fillStyle: '#ffffff', strokeStyle: '#000', lineWidth: 2 }
             });
             signs.push(sign);
@@ -215,14 +215,17 @@
         for (let i = 0; i < 3; i++) {
             const sign = signs[i];
             
-            // [버그 수정 핵심]: 물리 엔진이 무게를 재계산하도록 전용 함수 사용
             Matter.Body.setStatic(sign, false);
-            
             sign.render.fillStyle = '#444444'; 
             
-            // 살짝 밀어주어 떨어지는 속도감을 추가
-            Body.applyForce(sign, sign.position, { x: 0, y: 0.1 * sign.mass });
-            Body.setAngularVelocity(sign, (Math.random() - 0.5) * 0.3);
+            // [핵심 변경] y값을 마이너스로 주어 위로 튀어오르게 함
+            Body.applyForce(sign, sign.position, { 
+                x: (Math.random() - 0.5) * 0.02 * sign.mass, // 양옆으로 아주 살짝 퍼짐
+                y: -0.06 * sign.mass // 위로 봉! 뜸
+            });
+            
+            // 빙그르르 부드럽게 도는 속도 조절
+            Body.setAngularVelocity(sign, (Math.random() - 0.5) * 0.15);
         }
     }
 
