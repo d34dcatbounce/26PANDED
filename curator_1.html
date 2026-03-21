@@ -1,193 +1,163 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CURATOR NAME - EXPANDED</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXPANDED - PROTOTYPE</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;700&display=swap');
 
-  :root {
-    --bg-color: #050505;
-    
-    /* [수정하는 부분 1] 이 페이지의 메인 테마 컬러 */
-    --theme-color: #FF007F; /* 기본값: 네온 핑크 */
-    --theme-dim: rgba(255, 0, 127, 0.4); /* 그림자용 투명도 묶음 */
-  }
+        :root {
+            --bg-color: #050505;
+            --theme-color: #FF007F;
+            --gray-color: #444444;
+        }
 
-  body {
-    margin: 0; 
-    background-color: var(--bg-color); 
-    color: white;
-    font-family: 'Space Grotesk', sans-serif;
-    min-height: 100vh; 
-    display: flex; 
-    flex-direction: column;
-    overflow-x: hidden;
-  }
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color);
+            font-family: 'Space Grotesk', sans-serif;
+            overflow: hidden;
+            transition: background-color 0.8s cubic-bezier(0.2, 1, 0.3, 1);
+        }
 
-  /* --- 공통 헤더 네비게이션 (메인과 동일) --- */
-  header {
-    position: absolute; top: 30px; left: 40px; right: 60px; 
-    z-index: 10; display: flex; align-items: center; justify-content: space-between; 
-  }
-  .brand { display: flex; align-items: center; text-decoration: none; }
-  .logo {
-    width: 40px; height: 40px; background-color: transparent; border: 2px solid var(--theme-color);
-    border-radius: 50%; margin-right: 15px; display: flex; align-items: center; justify-content: center;
-  }
-  .logo::before {
-    content: 'EP'; font-family: 'Syncopate', sans-serif; color: var(--theme-color); font-size: 1.2rem; font-weight: 700;
-  }
-  h1 {
-    font-family: 'Syncopate', sans-serif; color: var(--theme-color); font-size: 2.5rem; margin: 0;
-    text-shadow: 0 0 10px var(--theme-dim), 0 0 20px var(--theme-dim); letter-spacing: 2px;
-  }
+        /* 핫핑크 배경 전환 클래스 */
+        body.active-bg { background-color: var(--theme-color); }
 
-  .top-menu { display: flex; gap: 40px; }
-  .menu-item {
-    font-family: 'Syncopate', sans-serif; font-size: 1.5rem; color: rgba(255, 255, 255, 0.5);
-    text-decoration: none; display: flex; align-items: flex-end; transition: color 0.3s, text-shadow 0.3s;
-  }
-  .menu-item.active, .menu-item:hover { color: var(--theme-color); text-shadow: 0 0 15px var(--theme-color); }
-  .menu-item .rest {
-    font-size: 1rem; max-width: 0; opacity: 0; overflow: hidden; white-space: nowrap;
-    transition: max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease; letter-spacing: 2px; padding-bottom: 2px; 
-  }
-  .menu-item:hover .rest { max-width: 150px; opacity: 1; margin-left: 2px; }
+        /* 가이드 텍스트 */
+        #guide {
+            position: absolute; bottom: 30px; width: 100%;
+            text-align: center; color: white; opacity: 0.6;
+            font-family: 'Syncopate'; pointer-events: none; z-index: 100;
+        }
 
-  /* --- 메인 콘텐츠 (큐레이터 정보 및 클리커) --- */
-  .container {
-    flex: 1; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: center;
-    padding: 120px 40px 40px; /* 헤더 공간 확보 */
-    text-align: center;
-  }
-
-  .curator-header { margin-bottom: 80px; }
-  
-  .curator-name {
-    font-family: 'Syncopate', sans-serif; 
-    font-size: 4rem; 
-    color: white; /* 이름은 흰색으로 쨍하게 */
-    margin: 0 0 10px 0; 
-    text-shadow: 0 0 20px var(--theme-dim);
-  }
-  
-  .curator-role {
-    color: var(--theme-color);
-    font-size: 1.2rem; 
-    letter-spacing: 5px; 
-    margin: 0;
-    font-weight: 700;
-  }
-
-  /* 3개의 작품 상징물(클리커) 배열 */
-  .projects-grid {
-    display: flex; 
-    gap: 80px; 
-    justify-content: center; 
-    align-items: center;
-  }
-
-  .project-card {
-    width: 200px; height: 200px; 
-    border: 2px dashed var(--theme-color);
-    transform: rotate(45deg); /* 마름모 형태 */
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(255, 255, 255, 0.02); 
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    cursor: pointer; text-decoration: none; 
-    box-shadow: inset 0 0 15px var(--theme-dim), 0 0 15px var(--theme-dim);
-  }
-
-  .project-card:hover {
-    background: rgba(255, 255, 255, 0.1); 
-    transform: rotate(135deg) scale(1.1); /* 회전하며 확대 */
-    border-style: solid; 
-    border-color: white;
-    box-shadow: 0 0 30px var(--theme-color), inset 0 0 30px var(--theme-color);
-  }
-
-  .project-title {
-    transform: rotate(-45deg); /* 부모 회전 상쇄 (수평 텍스트) */
-    font-family: 'Space Grotesk', sans-serif; 
-    font-size: 1.5rem; 
-    color: white;
-    font-weight: 700;
-    letter-spacing: 2px; 
-    text-shadow: 0 0 10px black; 
-    transition: color 0.3s;
-  }
-
-  .project-card:hover .project-title { 
-    color: white; 
-    text-shadow: 0 0 20px white;
-    transform: rotate(-135deg); /* 호버 시 회전 상쇄 */
-  }
-
-  /* 뒤로가기 버튼 */
-  .back-btn {
-    margin-top: 100px; 
-    font-family: 'Syncopate', sans-serif; 
-    font-size: 1rem; 
-    color: var(--theme-color);
-    text-decoration: none; 
-    border: 1px solid var(--theme-color); 
-    padding: 15px 30px; 
-    letter-spacing: 2px;
-    transition: all 0.3s ease;
-  }
-  
-  .back-btn:hover {
-    background: var(--theme-color); 
-    color: var(--bg-color); 
-    box-shadow: 0 0 20px var(--theme-color);
-  }
-
-</style>
+        canvas { display: block; }
+    </style>
 </head>
 <body>
 
-  <header>
-    <a href="index.html" class="brand">
-      <div class="logo"></div>
-      <h1>EXPANDED</h1>
-    </a>
-    
-    <nav class="top-menu">
-      <a href="#" class="menu-item active">A<span class="rest">CTIVITY</span></a>
-      <a href="#" class="menu-item">A<span class="rest">RCHIVE</span></a>
-      <a href="#" class="menu-item">A<span class="rest">BOUT</span></a>
-    </nav>
-  </header>
+<div id="guide">CLICK THE PINK CIRCLE TO START</div>
 
-  <div class="container">
-    <div class="curator-header">
-      <h2 class="curator-name">CURATOR NAME</h2>
-      <p class="curator-role">ROLE / POSITION</p>
-    </div>
+<script>
+    const { Engine, Render, Runner, Bodies, Composite, Mouse, MouseConstraint, Events, Body } = Matter;
 
-    <div class="projects-grid">
-      <a href="#" class="project-card">
-        <span class="project-title">PJT 01</span>
-      </a>
-      
-      <a href="#" class="project-card">
-        <span class="project-title">PJT 02</span>
-      </a>
-      
-      <a href="#" class="project-card">
-        <span class="project-title">PJT 03</span>
-      </a>
+    // 1. 엔진 및 렌더러 설정
+    const engine = Engine.create();
+    const render = Render.create({
+        element: document.body,
+        engine: engine,
+        options: {
+            width: window.innerWidth,
+            height: window.innerHeight,
+            wireframes: false, // 도형 색상을 보기 위해 false
+            background: 'transparent'
+        }
+    });
 
-    </div>
+    Render.run(render);
+    const runner = Runner.create();
+    Runner.run(runner, engine);
 
-    <a href="index.html" class="back-btn">RETURN TO NETWORK</a>
-  </div>
+    // 바닥 생성 (화면 밖)
+    const ground = Bodies.rectangle(window.innerWidth/2, window.innerHeight + 50, window.innerWidth, 100, { isStatic: true });
+    Composite.add(engine.world, ground);
 
+    // 2. 초기 상태: 왼쪽 핫핑크 클리커 생성
+    const triggerBtn = Bodies.circle(150, window.innerHeight/2, 60, {
+        isStatic: true,
+        label: 'trigger',
+        render: { fillStyle: '#FF007F' }
+    });
+    Composite.add(engine.world, triggerBtn);
+
+    // 마우스 제어 추가
+    const mouse = Mouse.create(render.canvas);
+    const mouseConstraint = MouseConstraint.create(engine, {
+        mouse: mouse,
+        constraint: { stiffness: 0.2, render: { visible: false } }
+    });
+    Composite.add(engine.world, mouseConstraint);
+
+    let step = 0; // 0: 시작전, 1: 간판등장, 2: 간판추락, 3: 사진비산
+    let signs = [];
+
+    // 3. 클릭 이벤트 핸들러
+    Events.on(mouseConstraint, "mousedown", function(event) {
+        const clickedBody = event.source.body;
+
+        // STEP 1: 왼쪽 버튼 클릭 -> 배경 바뀌고 간판 4개 등장
+        if (step === 0 && clickedBody === triggerBtn) {
+            document.body.classList.add('active-bg');
+            document.getElementById('guide').innerText = "CLICK ANYWHERE TO DROP SIGNS";
+            Composite.remove(engine.world, triggerBtn);
+            spawnSigns();
+            step = 1;
+        } 
+        // STEP 2: 화면 클릭 -> 3개 추락, 1개 남음
+        else if (step === 1) {
+            dropThreeSigns();
+            document.getElementById('guide').innerText = "CLICK THE REMAINING SIGN";
+            step = 2;
+        }
+        // STEP 3: 남은 간판 클릭 -> 사진 흩뿌리기
+        else if (step === 2 && signs.includes(clickedBody) && clickedBody.isStatic) {
+            scatterPhotos(clickedBody.position.x, clickedBody.position.y);
+            Composite.remove(engine.world, clickedBody);
+            document.getElementById('guide').innerText = "EXPANDED SUCCESS";
+            step = 3;
+        }
+    });
+
+    // --- 기능 함수들 ---
+
+    function spawnSigns() {
+        const colors = ['#ffffff', '#ffffff', '#ffffff', '#ffffff'];
+        for (let i = 0; i < 4; i++) {
+            const x = (window.innerWidth / 5) * (i + 1);
+            const sign = Bodies.rectangle(x, 200, 180, 90, {
+                isStatic: true,
+                render: { fillStyle: '#ffffff', strokeStyle: '#000', lineWidth: 2 }
+            });
+            signs.push(sign);
+            Composite.add(engine.world, sign);
+        }
+    }
+
+    function dropThreeSigns() {
+        // 앞의 3개는 물리 적용(isStatic = false) 및 색상 변경(흑백)
+        for (let i = 0; i < 3; i++) {
+            signs[i].isStatic = false;
+            signs[i].render.fillStyle = '#444444'; // 흑백 느낌
+            // 약간의 회전 랜덤 부여
+            Body.setAngularVelocity(signs[i], (Math.random() - 0.5) * 0.2);
+        }
+    }
+
+    function scatterPhotos(startX, startY) {
+        for (let i = 0; i < 15; i++) {
+            const photo = Bodies.rectangle(startX, startY, 60, 80, {
+                frictionAir: 0.05,
+                render: { fillStyle: '#eee' } // 임시 사진 도형
+            });
+            
+            Composite.add(engine.world, photo);
+
+            // 사방으로 튀어나가는 힘 부여
+            const forceMagnitude = 0.05 * photo.mass;
+            Body.applyForce(photo, photo.position, {
+                x: (Math.random() - 0.5) * forceMagnitude,
+                y: (Math.random() - 0.5) * forceMagnitude
+            });
+        }
+    }
+
+    // 윈도우 리사이즈 대응
+    window.addEventListener('resize', () => {
+        render.canvas.width = window.innerWidth;
+        render.canvas.height = window.innerHeight;
+    });
+
+</script>
 </body>
 </html>
