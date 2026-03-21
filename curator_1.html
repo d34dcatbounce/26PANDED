@@ -138,7 +138,6 @@
         Bodies.rectangle(window.innerWidth + wallThickness/2, window.innerHeight/2, wallThickness, window.innerHeight, wallOptions)
     ]);
 
-    // [수정된 부분] 핑크색 동그라미 위치를 화면 너비의 40% 지점(중앙에서 살짝 왼쪽)으로 변경
     const triggerBtn = Bodies.circle(window.innerWidth * 0.4, window.innerHeight / 2, 60, {
         isStatic: true, label: 'trigger', render: { fillStyle: '#FF007F' }
     });
@@ -203,8 +202,9 @@
             const x = (window.innerWidth / 5) * (i + 1);
             const sign = Bodies.rectangle(x, 200, 180, 90, {
                 isStatic: true,
-                frictionAir: 0.08, 
-                restitution: 0.3,  
+                frictionAir: 0.015, // [수정됨] 공기 저항을 확 낮춰서 중력 가속도를 제대로 받게 함 (0.08 -> 0.015)
+                density: 0.05,      // [추가됨] 약간의 밀도(무게감)를 더 줘서 묵직하게 떨어지는 맛을 살림
+                restitution: 0.4,   // 바닥에 닿았을 때 통통 튀는 정도
                 render: { fillStyle: '#ffffff', strokeStyle: '#000', lineWidth: 2 }
             });
             signs.push(sign);
@@ -219,9 +219,10 @@
             Matter.Body.setStatic(sign, false);
             sign.render.fillStyle = '#444444'; 
             
+            // 위로 튕겨 올라가는 힘 부여
             Body.applyForce(sign, sign.position, { 
                 x: (Math.random() - 0.5) * 0.02 * sign.mass, 
-                y: -0.06 * sign.mass 
+                y: -0.05 * sign.mass // 공기 저항이 줄어들었으므로 튕기는 힘도 살짝 조절
             });
             
             Body.setAngularVelocity(sign, (Math.random() - 0.5) * 0.15);
