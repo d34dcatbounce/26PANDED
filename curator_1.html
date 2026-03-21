@@ -131,7 +131,6 @@
     const wallOptions = { isStatic: true, render: { visible: false } };
     const wallThickness = 500; 
 
-    // 테두리 벽 설정
     Composite.add(engine.world, [
         Bodies.rectangle(window.innerWidth/2, window.innerHeight + wallThickness/2, window.innerWidth, wallThickness, wallOptions),
         Bodies.rectangle(window.innerWidth/2, -wallThickness/2, window.innerWidth, wallThickness, wallOptions),
@@ -158,6 +157,7 @@
     let mousedownPosition = { x: 0, y: 0 };
     let step3StartTime = 0; 
 
+    // [변경 1] 좌클릭 감지: 배경 클릭 시 튀어오르는 로직을 삭제했습니다.
     Events.on(mouseConstraint, "mousedown", function(event) {
         mousedownPosition = { x: event.mouse.position.x, y: event.mouse.position.y };
         const clickedBody = event.source.body;
@@ -177,38 +177,16 @@
         else if (step === 2 && signs.includes(clickedBody) && clickedBody.isStatic) {
             scatterPhotos(clickedBody.position.x, clickedBody.position.y);
             Composite.remove(engine.world, clickedBody);
-            document.getElementById('guide').innerText = "DRAG TO MOVE / CLICK TO ZOOM";
+            // 가이드 텍스트를 우클릭 안내로 변경
+            document.getElementById('guide').innerText = "LEFT CLICK TO ZOOM / RIGHT CLICK TO BOUNCE";
             
             step = 3; 
             step3StartTime = Date.now(); 
-        }
-        // [수정된 부분] STEP 3: 배경 클릭 시 기존 사진들이 단체로 튀어오름
-        else if (step === 3 && !clickedBody) { 
-            if (Date.now() - step3StartTime < 500) return;
-
-            // 현재 엔진 월드에 존재하는 모든 객체를 가져옴
-            const allBodies = Composite.allBodies(engine.world);
-            
-            // 라벨이 'photo'인 객체들만 필터링
-            const photoBodies = allBodies.filter(body => body.label === 'photo');
-            
-            // 모든 사진 객체에 동시에 위쪽 방향으로 힘을 가함 ("팍!")
-            photoBodies.forEach(photo => {
-                const forceMagnitude = 0.12 * photo.mass; // 힘의 크기 조절
-                Body.applyForce(photo, photo.position, {
-                    x: (Math.random() - 0.5) * 0.05 * photo.mass, // 양옆으로 아주 살짝 랜덤 퍼짐
-                    y: -forceMagnitude // 위쪽 방향 힘
-                });
-                
-                // 회전력도 살짝 랜덤하게 부여
-                Body.setAngularVelocity(photo, (Math.random() - 0.5) * 0.2);
-            });
         }
     });
 
     Events.on(mouseConstraint, "mouseup", function(event) {
         if (step !== 3) return; 
-        
         if (Date.now() - step3StartTime < 500) return;
 
         const mouseX = event.mouse.position.x;
@@ -223,6 +201,28 @@
                 const topMostPhoto = photosUnderMouse[photosUnderMouse.length - 1];
                 openZoom(topMostPhoto.render.fillStyle);
             }
+        }
+    });
+
+    // [추가 2] 우클릭(contextmenu) 감지 이벤트: 오직 우클릭 시에만 단체 점프
+    window.addEventListener('contextmenu', function(event) {
+        // 브라우저 기본 우클릭 메뉴창(새로고침, 뒤로가기 등) 방지
+        event.preventDefault(); 
+
+        if (step === 3) {
+            if (Date.now() - step3StartTime < 500) return;
+
+            const allBodies = Composite.allBodies(engine.world);
+            const photoBodies = allBodies.filter(body => body.label === 'photo');
+            
+            photoBodies.forEach(photo => {
+                const forceMagnitude = 0.12 * photo.mass; 
+                Body.applyForce(photo, photo.position, {
+                    x: (Math.random() - 0.5) * 0.05 * photo.mass, 
+                    y: -forceMagnitude 
+                });
+                Body.setAngularVelocity(photo, (Math.random() - 0.5) * 0.2);
+            });
         }
     });
 
