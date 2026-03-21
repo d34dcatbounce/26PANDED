@@ -157,8 +157,18 @@
     let mousedownPosition = { x: 0, y: 0 };
     let step3StartTime = 0; 
 
-    // [변경 1] 좌클릭 감지: 배경 클릭 시 튀어오르는 로직을 삭제했습니다.
+    // [핵심 추가] 우클릭 상태인지 판별하는 전역 변수
+    let isRightClick = false;
+
+    // 브라우저의 마우스 이벤트에서 어떤 버튼을 눌렀는지 감지
+    window.addEventListener('mousedown', function(e) {
+        // e.button === 2 는 우클릭을 의미합니다.
+        isRightClick = (e.button === 2);
+    });
+
     Events.on(mouseConstraint, "mousedown", function(event) {
+        if (isRightClick) return; // [수정] 우클릭이면 클릭/진행 로직 완전히 무시
+
         mousedownPosition = { x: event.mouse.position.x, y: event.mouse.position.y };
         const clickedBody = event.source.body;
         
@@ -177,7 +187,6 @@
         else if (step === 2 && signs.includes(clickedBody) && clickedBody.isStatic) {
             scatterPhotos(clickedBody.position.x, clickedBody.position.y);
             Composite.remove(engine.world, clickedBody);
-            // 가이드 텍스트를 우클릭 안내로 변경
             document.getElementById('guide').innerText = "LEFT CLICK TO ZOOM / RIGHT CLICK TO BOUNCE";
             
             step = 3; 
@@ -186,6 +195,8 @@
     });
 
     Events.on(mouseConstraint, "mouseup", function(event) {
+        if (isRightClick) return; // [수정] 우클릭 떼는 동작이면 확대 로직 완전히 무시
+
         if (step !== 3) return; 
         if (Date.now() - step3StartTime < 500) return;
 
@@ -204,10 +215,9 @@
         }
     });
 
-    // [추가 2] 우클릭(contextmenu) 감지 이벤트: 오직 우클릭 시에만 단체 점프
+    // 우클릭(contextmenu) 감지 이벤트: 오직 우클릭 시에만 단체 점프
     window.addEventListener('contextmenu', function(event) {
-        // 브라우저 기본 우클릭 메뉴창(새로고침, 뒤로가기 등) 방지
-        event.preventDefault(); 
+        event.preventDefault(); // 기본 메뉴창 방지
 
         if (step === 3) {
             if (Date.now() - step3StartTime < 500) return;
